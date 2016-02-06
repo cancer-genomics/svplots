@@ -16,7 +16,7 @@ test_that("genomeLogRatios", {
                              rdsId(pviews))
   logratios <- genomeLogRatios(pviews, thin=50)
   fig <- plotGenomeLogRatios(logratios)
-  expect_is("fig", "GGbio")
+  expect_is(fig, "GGbio")
 
   colors <- rep("black", length(logratios))
   index <- chromosome(logratios) %in% paste0("chr", seq(1, 22, 2))

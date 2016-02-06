@@ -1,20 +1,37 @@
 Package: svplots
 Title: Visualization tools for structural variant analyses
-Version: 0.0.1
+Version: 0.0.2
 Authors@R: person("Rob", "Scharpf", email = "rscharpf@jhu.edu", role = c("aut", "cre"))
 Description: Provides tools for plotting structural variant sequencing data.
-Depends: 
+Depends:
     R (>= 3.2.0),
     ggplot2,
     svclasses,
-Imports: 
+Imports:
     methods,
+    grid,
+    ggbio,
+    lattice,
+    graph,
+    Rgraphviz,
+    S4Vectors,
+    GenomeInfoDb,
+    GenomicAlignments,
+    IRanges,
     GenomicRanges,
-    ggbio
+    RColorBrewer,
+    biovizBase
 License: Artistic-2.0
 LazyData: true
-Collate: 
+Collate:
     'help.R'
+    'amplicon-plots.R'
+    'blat-plots.R'
+    'circos-utils.R'
+    'color_palettes.R'
+    'deletion-plots.R'
     'preprocess-plots.R'
 RoxygenNote: 5.0.1
-Suggests: testthat, svdata
+Suggests:
+    svdata,
+    testthat

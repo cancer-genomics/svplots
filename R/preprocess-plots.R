@@ -78,7 +78,6 @@ genomeLogRatios <- function(view, select_gr, lim=c(-4, 3), thin=10){
 #'
 #' @examples
 #'  library(svdata)
-#'  library(svplots)
 #'  data(pviews)
 #'  paths(pviews) <- file.path(system.file("extdata", package="svdata"),
 #'                             rdsId(pviews))
@@ -96,6 +95,7 @@ genomeLogRatios <- function(view, select_gr, lim=c(-4, 3), thin=10){
 #' @param title a character string providing a title for the figure
 #' @param ... additional arguments passed to \code{plotGrandLInear}
 plotGenomeLogRatios <- function(gr, title, ...){
+  log_ratio <- NULL
   p <- plotGrandLinear(gr, geom = "point", coord = "genome",
                        aes(y = log_ratio), ...)
 
