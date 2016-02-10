@@ -1,6 +1,9 @@
 setGeneric("interstitialLegend", function(object, accent) standardGeneric("interstitialLegend"))
 setGeneric("seq_along2", function(along.with) standardGeneric("seq_along2"))
 
+setGeneric("boxIdiogram", function(object) standardGeneric("boxIdiogram"))
+
+
 setClass("IdiogramParams", representation(seqnames="character",
                                           seqlengths="numeric",
                                           unit="character",
@@ -15,6 +18,12 @@ IdiogramParams <- function(seqnames=character(),
 }
 
 setClass("ILimit", contains="IRanges")
+
+setMethod("boxIdiogram", "IdiogramParams", function(object) object@box)
+setMethod("chromosome", "IdiogramParams", function(object) object@seqnames)
+setMethod("genome", "IdiogramParams", function(x) x@genome)
+setMethod("seqlengths", "IdiogramParams", function(x) x@seqlengths)
+setMethod("seqnames", "IdiogramParams", function(x) x@seqnames)
 
 ILimit <- function(...)  as(IRanges(...), "ILimit")
 
@@ -70,8 +79,8 @@ xlimTagDensity <- function(si, xlim, percent=0.1){
   g <- GRanges(chromosome(object)[1], IRanges(start(xlim), end(xlim)))
   ##seqlevels(segs, force=TRUE) <- chromosome(object)[1]
   seqlevels(g, force=TRUE) <- chromosome(object)[1]
-  i <- subjectHits(findOverlaps(g, ranges(pview), maxgap=start(g)-start(xlim)))
-  rowRanges(pview) <- ranges(pview)[i]
+  i <- subjectHits(findOverlaps(g, rowRanges(pview), maxgap=start(g)-start(xlim)))
+  pview <- pview[i, ]
   pview
 }
 
@@ -247,8 +256,8 @@ plotTagDensityComplex2 <- function(object,
   seg_col <- params[["seg_color"]]
   g <- GRanges(chromosome(object)[1], IRanges(start(xlim), end(xlim)))
   seqlevels(segs, force=TRUE) <- chromosome(object)[1]
-  k <- subjectHits(findOverlaps(g, ranges(view), maxgap=start(g)-start(xlim)))
-  rowRanges(view) <- ranges(view)[k]
+  k <- subjectHits(findOverlaps(g, rowRanges(view), maxgap=start(g)-start(xlim)))
+  view <- view[k, ]
   xscale <- range(c(start(rowRanges(view)), end(rowRanges(view))))
   td <- assays(view)[,1]
   td <- threshold(td, lim=ylim)
@@ -1037,9 +1046,10 @@ grid_params <- function(sv, dirs, id, group=1, gaps){
 #' @export 
 #' @param object a \code{StructuralVariant} object
 #' @param params 
-gridPlot2 <- function(object, params){
+gridPlot2 <- function(object, params, pview){
   klist <- params[["group.index"]]
   ilist <- params[["legend.index"]]
+  params$pview <- pview
   for(m in seq_along(klist)){
     p <- gridComplex(object, 
                      group.index=klist[[m]],
@@ -1047,4 +1057,308 @@ gridPlot2 <- function(object, params){
                      params=params)
   }
   p
+}
+
+
+draw_ideogram2 <- function(object, vps, params, pview, subset=TRUE){
+  if(missing(vps)) vps <- Viewports()
+  group.index <- params[["group.index"]][[1]]
+  ##aview <- params[["aview"]]
+  object_all <- object
+  object <- object[group.index]
+  iparams <- .ideogramParams(object, params)
+  idiogram <- grid.idiogram(iparams)
+  vpdata <- viewport(x=0, y=0, width=unit(0.8, "npc"), height=unit(1, "npc"),
+                     just=c("left", "bottom"))
+  label <- paste(colnames(pview), chromosome(object)[1], sep="\n")
+  vplist <- list()
+  xlim_tagd <- xlimTagDensity(seqinfo(object)[chromosome(object)[1], ],
+                              params[["xlim"]], 0.1)
+  if(subset){
+    params$pview <- .subset_pview(object, pview, xlim_tagd)
+  } else{
+    params$pview <- keepSeqlevels(pview, chromosome(object)[1])
+  }
+  pview <- params$pview
+  xscale <- range(c(start(rowRanges(pview)), end(rowRanges(pview))))
+  vps2 <- tagdensity_filter_viewports(xscale, ylim=c(-3,2))  
+  grid.newpage()
+  .draw_ideogram(object, params, vpdata, vps, idiogram)
+}
+
+
+.draw_filter_tracks <- function(object,
+                                view,
+                                percent=0.1,
+                                filterList,
+                                zoom.out=1,
+                                xlim,
+                                ylim=c(-3, 2),
+                                logy=TRUE,
+                                segs,
+                                accent,
+                                vps,
+                                params,
+                                ...){
+  pch <- params[["pch"]]
+  col <- params[["pch_color"]]
+  cex <- params[["cex"]]
+  seg_col <- params[["seg_color"]]
+  g <- GRanges(chromosome(object)[1], IRanges(start(xlim), end(xlim)))
+  seqlevels(segs, force=TRUE) <- chromosome(object)[1]
+  k <- subjectHits(findOverlaps(g, rowRanges(view), maxgap=start(g)-start(xlim)))
+  view <- view[k, ]
+  ##rowRanges(view) <- rowRanges(view)[k]
+  xscale <- range(c(start(rowRanges(view)), end(rowRanges(view))))
+  td <- assays(view)[,1]
+  td <- threshold(td, lim=ylim)
+  segs$seg.mean <- threshold(segs$seg.mean, lim=ylim)
+  locs <- pretty(range(xlim), n=10)
+  labels <- prettyNum(locs/1000, big.mark=",")
+  yaxis <- yaxisLabels(ylim, n=6, logscale=TRUE)
+  xlim_g <- GRanges(seqnames(g), IRanges(start(xlim), end(xlim)))
+  filterList2 <- subsetFilterList(filterList, xlim_g)
+  any_filters <- sum(elementLengths(filterList2)) > 0
+  cnv <- variant(object)
+  pushViewport(vps[["vlayout"]])
+  pushViewport(vps[["vpl2"]])
+  pushViewport(vps[["filter_vp"]])
+  ys <- seq(0, 0.9, length.out=length(filterList))
+  h <- 0.1
+  grid.segments(y0=unit(ys+h/2, "native"),
+                y1=unit(ys+h/2, "native"),
+                gp=gpar(lty=2, col="gray"))
+  for(k in seq_along(filterList)){
+    f <- filterList[[k]]
+    yy <- unit(ys[k], "native")
+    hits <- subjectHits(findOverlaps(g, f))
+    if(length(hits) > 0){
+      st <- start(f)[hits]
+      en <- end(f)[hits]
+      grid.rect(x=st,
+                width=en-st,
+                y=yy,
+                height=h,
+                default.units="native",
+                gp=gpar(col=NA, fill="gray40"),
+                just=c("left", "bottom"))
+    }
+  }
+  upViewport()
+  pushViewport(vps[["filteraxis"]])
+  grid.rect(gp=gpar(fill="wheat", col=NA))
+  grid.text("filters", rot=90, gp=gpar(cex=0.7))
+  yy <- unique(ys)
+  grid.yaxis(at=yy,
+             label=names(filterList),
+             gp=gpar(cex=0.7))
+  upViewport(2)
+  pushViewport(vps[["vp"]])
+  pushViewport(vps[["filter_tagd"]])
+  ## this highlights the rearrangement region
+  grid.rect(x=start(cnv),
+            width=end(cnv)-start(cnv),
+            y=unit(-0.01, "npc"),
+            height=unit(1, "npc"),
+            default.units="native",
+            gp=gpar(fill=accent, col=NA),
+            just=c("left", "bottom"))
+  upViewport(2)
+}
+
+.draw_filter_tracks2 <- function(object, params, vpdata, vps){
+  pview <- params[["pview"]]
+  filterList <- params[["filterList"]]
+  zoom.out <- params[["zoom.out"]]
+  xlim <- params[["xlim"]]
+  segs <- params[["segs"]]
+  cex <- params[["cex"]]
+  accent <- params[["accent"]]
+  xlim <- xlimTagDensity(seqinfo(object)[chromosome(object)[1], ], xlim, 0.1)
+  xscale <- range(c(start(rowRanges(pview)), end(rowRanges(pview))))
+  vps2 <- tagdensity_filter_viewports(xscale, ylim=c(-3,2))
+  start(xlim) <- xscale[1]
+  end(xlim) <- xscale[2]  
+  upViewport(0)
+  pushViewport(vpdata)
+  vp <- vps[["tagdens"]]
+  pushViewport(vp)
+  .draw_filter_tracks(object,
+                         view=pview,
+                         filterList=filterList,
+                         zoom.out=zoom.out,
+                         xlim=xlim,
+                         segs=segs, 
+                         accent=accent,
+                         vps=vps2,
+                         params=params)  
+}
+
+draw_filters <- function(object, vps, params, pview, subset=TRUE){
+  if(missing(vps)) vps <- Viewports()
+  group.index <- params[["group.index"]][[1]]
+  ##aview <- params[["aview"]]
+  object_all <- object
+  object <- object[group.index]
+  iparams <- .ideogramParams(object, params)
+  idiogram <- grid.idiogram(iparams)
+  vpdata <- viewport(x=0, y=0, width=unit(0.8, "npc"), height=unit(1, "npc"),
+                     just=c("left", "bottom"))
+  label <- paste(colnames(pview), chromosome(object)[1], sep="\n")
+  vplist <- list()
+  ##
+  ## Begin drawing figure
+  ##
+  xlim_tagd <- xlimTagDensity(seqinfo(object)[chromosome(object)[1], ],
+                              params[["xlim"]], 0.1)
+  if(subset){
+    params$pview <- .subset_pview(object, pview, xlim_tagd)
+  } else{
+    params$pview <- keepSeqlevels(pview, chromosome(object)[1])
+  }
+  pview <- params$pview
+  xscale <- range(c(start(rowRanges(pview)), end(rowRanges(pview))))
+  vps2 <- tagdensity_filter_viewports(xscale, ylim=c(-3,2))  
+  .draw_filter_tracks2(object, params, vpdata, vps)
+}
+
+.draw_tagdensity3 <- function(object,
+                              view,
+                              percent=0.1,
+                              filterList,
+                              zoom.out=1,
+                              xlim,
+                              ylim=c(-3, 2),
+                              logy=TRUE,
+                              segs,
+                              accent,
+                              vps,
+                              params,
+                              ...){
+  pch <- params[["pch"]]
+  col <- params[["pch_color"]]
+  cex <- params[["cex"]]
+  seg_col <- params[["seg_color"]]
+  g <- GRanges(chromosome(object)[1], IRanges(start(xlim), end(xlim)))
+  seqlevels(segs, force=TRUE) <- chromosome(object)[1]
+  k <- subjectHits(findOverlaps(g, rowRanges(view), maxgap=start(g)-start(xlim)))
+  view <- view[k, ]
+  xscale <- range(c(start(rowRanges(view)), end(rowRanges(view))))
+  browser()
+  td <- assays(view)[,1]
+  td <- threshold(td, lim=ylim)
+  segs$seg.mean <- threshold(segs$seg.mean, lim=ylim)
+  locs <- pretty(range(xlim), n=10)
+  labels <- prettyNum(locs/1000, big.mark=",")
+  yaxis <- yaxisLabels(ylim, n=6, logscale=TRUE)
+  xlim_g <- GRanges(seqnames(g), IRanges(start(xlim), end(xlim)))
+  filterList2 <- subsetFilterList(filterList, xlim_g)
+  any_filters <- sum(elementLengths(filterList2)) > 0
+  cnv <- variant(object)
+  pushViewport(vps[["vlayout"]])
+  pushViewport(vps[["vpl1"]])
+  pushViewport(vps[["tdvp"]])
+  grid.rect(gp=gpar(col="gray"))
+  grid.points(x=start(rowRanges(view)),
+              y=td, pch=pch,
+              default.units="native",
+              gp=gpar(col=col, cex=cex))
+  grid.segments(x0=start(segs),
+                x1=end(segs),
+                y0=segs$seg.mean,
+                y1=segs$seg.mean,
+                default.units="native", gp=gpar(lwd=1.5, col=seg_col))
+  upViewport()
+  pushViewport(vps[["axisvp"]])
+  grid.yaxis(gp=gpar(cex=0.6), main=FALSE)
+  at <- pretty(xscale, n=8)
+  at <- at[at >= xscale[1] & at <= tail(xscale, 1)]
+  labels <- prettyNum(at/1000, big.mark=",")
+  grid.xaxis(at=at, label=labels, gp=gpar(cex=0.6))
+  upViewport()
+  ##tg <- textGrob("log2 tag\ndensity", gp=gpar(cex=0.7))
+  pushViewport(vps[["axislabel"]])
+  grid.rect(gp=gpar(fill="wheat", col=NA))
+  grid.text("log2 tag\ndensity", rot=90, gp=gpar(cex=0.7))
+  upViewport(2)
+}
+
+.draw_tagdensity2 <- function(object, params, vpdata, vps){
+  pview <- params[["pview"]]
+  filterList <- params[["filterList"]]
+  zoom.out <- params[["zoom.out"]]
+  xlim <- params[["xlim"]]
+  segs <- params[["segs"]]
+  cex <- params[["cex"]]
+  accent <- params[["accent"]]
+  xlim <- xlimTagDensity(seqinfo(object)[chromosome(object)[1], ], xlim, 0.1)
+  xscale <- range(c(start(rowRanges(pview)), end(rowRanges(pview))))
+  vps2 <- tagdensity_filter_viewports(xscale, ylim=c(-3,2))
+  start(xlim) <- xscale[1]
+  end(xlim) <- xscale[2]  
+  upViewport(0)
+  pushViewport(vpdata)
+  vp <- vps[["tagdens"]]
+  pushViewport(vp)
+  .draw_tagdensity3(object,
+                    view=pview,
+                    filterList=filterList,
+                    zoom.out=zoom.out,
+                    xlim=xlim,
+                    segs=segs, 
+                    accent=accent,
+                    vps=vps2,
+                    params=params)
+}
+
+draw_logratios2 <- function(object, vps, params, pview, subset=TRUE){
+  if(missing(vps)) vps <- Viewports()
+  group.index <- params[["group.index"]][[1]]
+  object_all <- object
+  object <- object[group.index]
+  iparams <- .ideogramParams(object, params)
+  idiogram <- grid.idiogram(iparams)
+  vpdata <- viewport(x=0, y=0, width=unit(0.8, "npc"), height=unit(1, "npc"),
+                     just=c("left", "bottom"))
+  label <- paste(colnames(pview), chromosome(object)[1], sep="\n")
+  vplist <- list()
+  ##
+  ## Begin drawing figure
+  ##
+  xlim_tagd <- xlimTagDensity(seqinfo(object)[chromosome(object)[1], ],
+                              params[["xlim"]], 0.1)
+  if(subset){
+    params$pview <- .subset_pview(object, pview, xlim_tagd)
+  } else{
+    params$pview <- keepSeqlevels(pview, chromosome(object)[1])
+  }
+  pview <- params$pview
+  xscale <- range(c(start(rowRanges(pview)), end(rowRanges(pview))))
+  vps2 <- tagdensity_filter_viewports(xscale, ylim=c(-3,2))  
+  .draw_tagdensity2(object, params, vpdata, vps)
+}
+
+draw_connection <- function(object, vps, params, pview, subset=TRUE){
+  if(missing(vps)) vps <- Viewports()
+  group.index <- params[["group.index"]][[1]]
+  object_all <- object
+  object <- object[group.index]
+  iparams <- .ideogramParams(object, params)
+  idiogram <- grid.idiogram(iparams)
+  vpdata <- viewport(x=0, y=0, width=unit(0.8, "npc"), height=unit(1, "npc"),
+                     just=c("left", "bottom"))
+  label <- paste(colnames(pview), chromosome(object)[1], sep="\n")
+  vplist <- list()
+  xlim_tagd <- xlimTagDensity(seqinfo(object)[chromosome(object)[1], ],
+                              params[["xlim"]], 0.1)
+  if(subset){
+    params$pview <- .subset_pview(object, pview, xlim_tagd)
+  } else{
+    params$pview <- keepSeqlevels(pview, chromosome(object)[1])
+  }  
+  pview <- params[["pview"]]
+  xscale <- range(c(start(rowRanges(pview)), end(rowRanges(pview))))
+  vps2 <- tagdensity_filter_viewports(xscale, ylim=c(-3,2))  
+  upViewport(0)
+  .connect_ideogram(vpdata, vps, vps2, iparams, xscale)
 }
