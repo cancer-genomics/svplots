@@ -108,7 +108,7 @@ circosTracks <- function(id, dirs, slstyle="NCBI", MINSEP=50e3){
 #' @param tracks a named \code{list} of \code{GRanges} objects as
 #'   provided by \code{circosTracks}
 #' 
-#' @param cbcolors 
+#' @param cbcolors character vector of colors
 circosPlot <- function(tracks, cbcolors){
   r <- tracks[["r"]]
   seqinfo(r) <- seqinfo(tracks[["hg"]])

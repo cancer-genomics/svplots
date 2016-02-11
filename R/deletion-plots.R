@@ -728,17 +728,21 @@ Viewports <- function(){
        filter=filterVP)
 }
 
-.overlapping_segs <- function(object, legend_labels, legvp){
+.overlapping_segs <- function(object, legend_labels, legvp, label, accent){
   ys <- .legend_locations(object)
-  h <- diff(ys)[1]*1/2
+  ##h <- diff(ys)[1]*1/2
+  h <- abs(diff(ys)[1])
   J <- seq_along(ys)
-  any_overlapping <- any(calls(object)=="OverlappingHemizygous+")
-  if(any_overlapping){
-    k <- which(calls(object)=="OverlappingHemizygous+")
-    calls(object)[k] <- "hemizygous+"
-    accent[k] <- "transparent"
-  }
-  if(!any_overlapping) return(invisible())
+  ##any_overlapping <- any(calls(object)=="OverlappingHemizygous+")
+  ##if(any_overlapping){
+  k <- which(calls(object)=="OverlappingHemizygous+")
+  calls(object)[k] <- "hemizygous+"
+  accent[k] <- "transparent"
+  ##}
+  ##
+  ## Return if no overlapping segs
+  ##
+  ##if(!any_overlapping) return(invisible())
   J <- J[-k]
   ##
   ## In order to modify the read pairs figure, we need to identify
@@ -767,6 +771,7 @@ Viewports <- function(){
                 y1=y1,
                 gp=gpar(col="black"))
   mid <- (st+en)/2
+  ## Add labels to dendrogram
   for(ii in seq_along(k)){
     kk <- k[ii]
     tg <- textGrob(legend_labels[kk], x=unit(mid[ii], "native"),
@@ -778,6 +783,7 @@ Viewports <- function(){
     grid.draw(editGrob(circledText, gp=gpar(col="gray", fill="white")))
     grid.draw(editGrob(tg, gp=gpar(col="black")))
   }
+  ## Add legends for overlapping regions
   for(m in k){
     upViewport(0)
     ##      pushViewport(rightmargin)
@@ -792,6 +798,40 @@ Viewports <- function(){
               gp=gpar(cex=1))
     interstitialLegend(object[m], accent=accent[m])
   }
+  J <- seq_along(ys)[-k]
+  if(length(J) > 0){
+    for(j in J){
+      st <- start(variant(object))[j]
+      en <- end(variant(object))[j]
+      yy <- unit(1, "npc") - unit(1, "mm")
+      mid <- (st+en)/2
+      seekViewport("readpairs")
+      tg <- textGrob(legend_labels[j],
+                     x=unit(mid, "native"),
+                     y=yy, just="center")
+      cg <- circleGrob(x=unit(mid, "native"),
+                       y=yy,
+                       r=0.9*grobWidth(tg))
+      circledText <- gTree(children=gList(tg, cg))
+      grid.draw(editGrob(circledText, gp=gpar(col="gray", fill="white")))
+      grid.draw(editGrob(tg, gp=gpar(col="black")))
+      upViewport(0)
+      pushViewport(legvp)
+      vp <- viewport(x=0, y=ys[j], width=unit(1, "npc"),
+                     height=unit(h, "npc"),
+                     just=c("left", "bottom"))
+      pushViewport(vp)
+      grid.text(legend_labels[j],
+                x=unit(0, "npc")+unit(1, "mm"),
+                y=unit(1, "npc")-unit(5, "mm"),
+                gp=gpar(cex=1))
+      interstitialLegend(object[j], accent=accent[j])
+      upViewport()
+    }
+  }
+  upViewport(0)
+  grid.text(label, x=unit(0.01, "npc"), y=unit(0.98, "npc"),
+            gp=gpar(cex=1.1), just=c("left", "top"))  
 }
 
 .legend_locations <- function(object){
@@ -821,9 +861,10 @@ setMethod("interstitialLegend", "StructuralVariant", function(object, accent){
                    "end   (kb)    :", en, "\n")
                    ##"id            :", names(jun), "\n")
   grid.rect(gp=gpar(fill=accent, col="transparent"))
+  ## title of legend
   grid.text(calls(object), x=unit(0.5, "npc"),
             y=unit(0.8, "npc"),
-            just=c("center", "bottom"),
+            just=c("center", "top"),
             gp=gpar(font=2))
   grid.text(labels, x=unit(0.05, "npc"),
             y=unit(0.75, "npc"), just=c("left", "top"),
@@ -915,8 +956,12 @@ gridComplex <- function(object, group.index, legend.index, params){
                           zoom.out, accent, group.index)
   upViewport()
   pushViewport(vprp)
-  .overlapping_segs(object, legend_labels, legvp)
-  .legend_deletions(object, legend_labels, legvp, label, accent)
+  any_overlapping <- any(calls(object)=="OverlappingHemizygous+")
+  if(any_overlapping){
+    .overlapping_segs(object, legend_labels, legvp, label, accent)
+  } else{
+    .legend_deletions(object, legend_labels, legvp, label, accent)
+  }
   upViewport(0)  
 }
 
@@ -1015,6 +1060,9 @@ gridDeletionParams <- function(object,
 #' @param dirs a \code{DataPaths} object
 #' @param id  sample id character string
 #' @param group grouping factor for the deletions
+#' @param gaps a \code{GRanges} object containing centromeres,
+#'   heterochromatin regions, and telomeres
+#' 
 #' @export
 grid_params <- function(sv, dirs, id, group=1, gaps){
   accent <- addalpha(brewer.pal(12, "Paired"), 0.2)
@@ -1046,7 +1094,9 @@ grid_params <- function(sv, dirs, id, group=1, gaps){
 #' 
 #' @export 
 #' @param object a \code{StructuralVariant} object
-#' @param params 
+#' @param params a list of parameters as created by \code{grid_params}
+#' @param pviews a \code{PreprocessViews2} object
+#' @seealso \code{\link{grid_params}}
 gridPlot2 <- function(object, params, pview){
   klist <- params[["group.index"]]
   ilist <- params[["legend.index"]]
