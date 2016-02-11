@@ -11,7 +11,7 @@
 #' @import grid
 #' @import ggplot2
 #' @importFrom lattice lsegments current.panel.limits xyplot panel.abline panel.xyplot
-#' @importFrom ggbio plotGrandLinear
+#' @import ggbio 
 #' @import graph
 #' @importMethodsFrom S4Vectors elementLengths
 #' @importMethodsFrom GenomicAlignments first last
