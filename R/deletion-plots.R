@@ -863,7 +863,7 @@ setMethod("interstitialLegend", "StructuralVariant", function(object, accent){
   grid.rect(gp=gpar(fill=accent, col="transparent"))
   ## title of legend
   grid.text(calls(object), x=unit(0.5, "npc"),
-            y=unit(0.8, "npc"),
+            y=unit(1, "npc"),
             just=c("center", "top"),
             gp=gpar(font=2))
   grid.text(labels, x=unit(0.05, "npc"),
@@ -1075,6 +1075,8 @@ grid_params <- function(sv, dirs, id, group=1, gaps){
   ##views <- loadViews(id, dirs)
   ##filters <- loadFilters()
   filters <- listGenomeFilters("hg19")
+  ## make names short
+  names(filters) <- c("centr", "gaps", "germ", "out", "tx")
   params <- gridDeletionParams(sv,
                                ##pview=views[["lr"]],
                                ##aview=views[["aln"]],
