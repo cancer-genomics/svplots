@@ -150,7 +150,7 @@ tagdensity_filter_viewports <- function(xscale, ylim=c(-3,2)){
   filter_labels <- viewport(name="filter_labels",
                             x=unit(0.1, "npc"),
                             y=unit(0.05, "npc"),
-                            width=unit(0.9, "npc"),
+                            width=unit(1, "npc"),
                             height=unit(0.95, "npc"),
                             just=c("left", "bottom"),
                             xscale=xscale,
@@ -1015,6 +1015,7 @@ gridDeletionParams <- function(object,
 #' @param dirs a \code{DataPaths} object
 #' @param id  sample id character string
 #' @param group grouping factor for the deletions
+#' @export
 grid_params <- function(sv, dirs, id, group=1, gaps){
   accent <- addalpha(brewer.pal(12, "Paired"), 0.2)
   gray <- addalpha("gray10", alpha=0.2)
@@ -1184,14 +1185,14 @@ draw_ideogram2 <- function(object, vps, params, pview, subset=TRUE){
   vp <- vps[["tagdens"]]
   pushViewport(vp)
   .draw_filter_tracks(object,
-                         view=pview,
-                         filterList=filterList,
-                         zoom.out=zoom.out,
-                         xlim=xlim,
-                         segs=segs, 
-                         accent=accent,
-                         vps=vps2,
-                         params=params)  
+                      view=pview,
+                      filterList=filterList,
+                      zoom.out=zoom.out,
+                      xlim=xlim,
+                      segs=segs, 
+                      accent=accent,
+                      vps=vps2,
+                      params=params)  
 }
 
 draw_filters <- function(object, vps, params, pview, subset=TRUE){
@@ -1244,7 +1245,6 @@ draw_filters <- function(object, vps, params, pview, subset=TRUE){
   k <- subjectHits(findOverlaps(g, rowRanges(view), maxgap=start(g)-start(xlim)))
   view <- view[k, ]
   xscale <- range(c(start(rowRanges(view)), end(rowRanges(view))))
-  browser()
   td <- assays(view)[,1]
   td <- threshold(td, lim=ylim)
   segs$seg.mean <- threshold(segs$seg.mean, lim=ylim)

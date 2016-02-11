@@ -37,10 +37,10 @@ cnTrack <- function(dirs, id, nt=200){
 #' @seealso \code{\link[GenomeInfoDb]{seqlevelsStyle}}
 circosTracks <- function(id, dirs, slstyle="NCBI", MINSEP=50e3){
   id.rds <- paste0(id, ".rds")
-  svs <- readRDS(file.path(dirs["deletions"], id.rds))
+  svs <- readRDS(file.path(dirs["1deletions"], id.rds))
   d <- granges(variant(svs))
   d$type <- rep("del", length(d))
-  amps <- readRDS(file.path(dirs["amplicons"], id.rds))
+  amps <- readRDS(file.path(dirs["2amplicons"], id.rds))
   a <- granges(amplicons(amps))
   a$type <- rep("amp", length(a))
   seqlevelsStyle(d) <- slstyle
@@ -50,19 +50,25 @@ circosTracks <- function(id, dirs, slstyle="NCBI", MINSEP=50e3){
   ## ideogram
   hg <- getIdeoGR(d)
   names(hg) <- NULL
-  rlist <- readRDS(file.path(dirs["rearrangements/3blat_unmapped"], id.rds))
-  r <- linkedBins(rlist)
-  if(length(r) > 0){
-    seqlevelsStyle(r) <- slstyle
-    seqlevelsStyle(r$linked.to) <- slstyle
-    r <- keepSeqlevels(r, seqlevels(d))
-    seqinfo(r) <- seqinfo(hg)
-    lt <- r$linked.to
-    seqlevels(lt, force=TRUE) <- seqlevels(r)
-    seqinfo(lt) <- seqinfo(r)
-    r$linked.to <- lt
-    names(r) <- NULL
-  } else {
+  rfile <- file.path(dirs["rearrangements/3blat_unmapped"], id.rds)
+  if(file.exists(rfile)){
+    rlist <- readRDS(rfile)
+    r <- linkedBins(rlist)
+    if(length(r) > 0){
+      seqlevelsStyle(r) <- slstyle
+      seqlevelsStyle(r$linked.to) <- slstyle
+      r <- keepSeqlevels(r, seqlevels(d))
+      seqinfo(r) <- seqinfo(hg)
+      lt <- r$linked.to
+      seqlevels(lt, force=TRUE) <- seqlevels(r)
+      seqinfo(lt) <- seqinfo(r)
+      r$linked.to <- lt
+      names(r) <- NULL
+    } else {
+      r$linked.to <- GRanges()
+    }
+  }  else {
+    r <- GRanges()
     r$linked.to <- GRanges()
   }
   gr.cn <- cnTrack(dirs, id, 200) ## number of cn estimates per chrom.
@@ -107,22 +113,42 @@ circosPlot <- function(tracks, cbcolors){
   r <- tracks[["r"]]
   seqinfo(r) <- seqinfo(tracks[["hg"]])
   seqinfo(r$linked.to) <- seqinfo(r)
-  p <- ggbio(buffer=0) + circle(tracks[["hg"]], geom = "text", aes(label = seqnames),
-                                    vjust = 0, size = 3, radius=38) +
-    circle(r, geom = "link", linked.to = "linked.to",
-           radius=25, color=cbcolors[2]) +
-    circle(tracks[["cnvs"]], geom = "rect", aes(fill=type, color=type),
-           trackWidth=3, radius=28) +  
-    circle(tracks[["gr.cn"]], geom = "segment",
-           color="black",
-           fill="black",
-           aes(y=cn),
-           grid = FALSE, size=0.5, radius=31, trackwidth=3) +
-    circle(tracks[["hg"]], geom = "ideo", fill = "beige",
-           color = "gray",
-           radius=35,
-           trackwidth=1) +
-    circle(tracks[["hg"]], geom = "text", aes(label = seqnames),
-           vjust = 0, size = 3, radius=38) +
-    labs(title=tracks[["id"]])
+  if(length(r) > 0){
+    p <- ggbio(buffer=0) + circle(tracks[["hg"]], geom = "text", aes(label = seqnames),
+                                  vjust = 0, size = 3, radius=38) +
+      circle(r, geom = "link", linked.to = "linked.to",
+             radius=25, color=cbcolors[2]) +
+      circle(tracks[["cnvs"]], geom = "rect", aes(fill=type, color=type),
+             trackWidth=3, radius=28) +  
+      circle(tracks[["gr.cn"]], geom = "segment",
+             color="black",
+             fill="black",
+             aes(y=cn),
+             grid = FALSE, size=0.5, radius=31, trackwidth=3) +
+      circle(tracks[["hg"]], geom = "ideo", fill = "beige",
+             color = "gray",
+             radius=35,
+             trackwidth=1) +
+      circle(tracks[["hg"]], geom = "text", aes(label = seqnames),
+             vjust = 0, size = 1, radius=39) +
+      labs(title=tracks[["id"]])
+  } else {
+    p <- ggbio(buffer=0) + circle(tracks[["hg"]], geom = "text", aes(label = seqnames),
+                                  vjust = 0, size = 3, radius=38) +
+      circle(tracks[["cnvs"]], geom = "rect", aes(fill=type, color=type),
+             trackWidth=3, radius=28) +  
+      circle(tracks[["gr.cn"]], geom = "segment",
+             color="black",
+             fill="black",
+             aes(y=cn),
+             grid = FALSE, size=0.5, radius=31, trackwidth=3) +
+      circle(tracks[["hg"]], geom = "ideo", fill = "beige",
+             color = "gray",
+             radius=35,
+             trackwidth=1) +
+      circle(tracks[["hg"]], geom = "text", aes(label = seqnames),
+             vjust = 0, size = 1, radius=39) +
+      labs(title=tracks[["id"]])
+  }
+  p
 }
