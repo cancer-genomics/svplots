@@ -732,10 +732,12 @@ Viewports <- function(){
   ys <- .legend_locations(object)
   ##h <- diff(ys)[1]*1/2
   h <- abs(diff(ys)[1])
+  if(is.na(h)) h <- 1 ## e.g., ys has length 1
   J <- seq_along(ys)
   ##any_overlapping <- any(calls(object)=="OverlappingHemizygous+")
   ##if(any_overlapping){
   k <- which(calls(object)=="OverlappingHemizygous+")
+  if(length(k)==0) stop("not overlapping hemizygous")
   calls(object)[k] <- "hemizygous+"
   accent[k] <- "transparent"
   ##}
