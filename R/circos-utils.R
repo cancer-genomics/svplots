@@ -129,25 +129,21 @@ circosPlot <- function(tracks, cbcolors){
              color = "gray",
              radius=35,
              trackwidth=1) +
-      circle(tracks[["hg"]], geom = "text", aes(label = seqnames),
-             vjust = 0, size = 1, radius=39) +
       labs(title=tracks[["id"]])
   } else {
-    p <- ggbio(buffer=0) + circle(tracks[["hg"]], geom = "text", aes(label = seqnames),
-                                  vjust = 0, size = 3, radius=38) +
-      circle(tracks[["cnvs"]], geom = "rect", aes(fill=type, color=type),
-             trackWidth=3, radius=28) +  
-      circle(tracks[["gr.cn"]], geom = "segment",
-             color="black",
-             fill="black",
-             aes(y=cn),
-             grid = FALSE, size=0.5, radius=31, trackwidth=3) +
-      circle(tracks[["hg"]], geom = "ideo", fill = "beige",
-             color = "gray",
-             radius=35,
-             trackwidth=1) +
-      circle(tracks[["hg"]], geom = "text", aes(label = seqnames),
-             vjust = 0, size = 1, radius=39) +
+    cnvs <- tracks[["cnvs"]]
+    cnvs$CNV <- cnvs$type
+    p <- ggplot() + layout_circle(tracks[["hg"]], geom="text", aes(label=seqnames), vjust=0, size=1, radius=39) +
+      layout_circle(cnvs, geom = "rect", aes(fill=CNV, color=CNV),
+                    trackWidth=3, radius=28)  +
+      layout_circle(tracks[["gr.cn"]], geom = "segment",
+                    color="black",
+                    fill="black",
+                    aes(y=cn),
+                    grid = FALSE, size=0.5, radius=31, trackwidth=3) +
+      layout_circle(tracks[["hg"]], geom = "ideo", fill = "beige",
+                    radius=35,
+                    trackwidth=1) +
       labs(title=tracks[["id"]])
   }
   p
