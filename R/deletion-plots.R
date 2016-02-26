@@ -502,6 +502,7 @@ idiogram_coordinates <- function(params){
 }
 
 grid_readpairs <- function(rp, del, accent, legend_labels, ...){
+  if(length(rp)==0) return(NULL)
   ix <- order(start(first(rp)))
   rp <- rp[ix]
   L <- length(rp)
