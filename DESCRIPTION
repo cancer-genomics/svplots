@@ -1,6 +1,6 @@
 Package: svplots
 Title: Visualization tools for structural variant analyses
-Version: 0.0.9
+Version: 0.0.10
 Authors@R: person("Rob", "Scharpf", email = "rscharpf@jhu.edu", role = c("aut", "cre"))
 Description: Provides tools for plotting structural variant sequencing data.
 Depends:
@@ -20,7 +20,8 @@ Imports:
     IRanges,
     GenomicRanges,
     RColorBrewer,
-    biovizBase
+    biovizBase,
+    svcnvs (>= 0.0.23)
 License: Artistic-2.0
 LazyData: true
 Collate:

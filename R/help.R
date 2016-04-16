@@ -20,4 +20,5 @@
 #' @importMethodsFrom Rgraphviz renderGraph
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom biovizBase getIdeoGR
+#' @importFrom svcnvs listGenomeFilters
 NULL

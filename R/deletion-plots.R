@@ -1077,7 +1077,7 @@ grid_params <- function(sv, dirs, id, group=1, gaps){
   ##gaps_gr <- readRDS(file.path(dirs[["extdata"]], "gaps_gr_hg19.rds"))
   ##views <- loadViews(id, dirs)
   ##filters <- loadFilters()
-  filters <- listGenomeFilters("hg19")
+  filters <- listGenomeFilters()
   ## make names short
   names(filters) <- c("centr", "gaps", "germ", "out", "tx")
   params <- gridDeletionParams(sv,
