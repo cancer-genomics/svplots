@@ -26,7 +26,7 @@ cnTrack <- function(dirs, id, nt=200){
 #' 
 #' @export
 #' @param id a length-one character vector of the sample identifier
-#' @param dirs a \code{DataPaths} object
+#' @param dirs character string providing path to data directory
 #' @param slstyle one of the available \code{seqlevelStyle}
 #' 
 #' @param MINSEP the minimum size of a rearrangement ('link'
@@ -35,7 +35,7 @@ cnTrack <- function(dirs, id, nt=200){
 #'   rearrangements.
 #' 
 #' @seealso \code{\link[GenomeInfoDb]{seqlevelsStyle}}
-circosTracks <- function(id, dirs, slstyle="NCBI", MINSEP=50e3){
+circosTracks <- function(id, dirs="data", slstyle="NCBI", MINSEP=50e3){
   id.rds <- paste0(id, ".rds")
   ##svs <- readRDS(file.path(dirs["1deletions"], id.rds))
   svs <- readRDS(file.path("data/segment/1deletions", id.rds))
@@ -114,24 +114,25 @@ circosPlot <- function(tracks, cbcolors){
   seqinfo(r) <- seqinfo(tracks[["hg"]])
   seqinfo(r$linked.to) <- seqinfo(r)
   if(length(r) > 0){
-    p <- ggbio(buffer=0) + circle(tracks[["hg"]], geom = "text", aes(label = seqnames),
-                                  vjust = 0, size = 3, radius=38) +
+    p <- ggbio(buffer=0) +
+      circle(tracks[["hg"]], geom = "text", aes(label = seqnames),
+             vjust = 0, size = 3, radius=38) +
       circle(r, geom = "link", linked.to = "linked.to",
-             radius=25, color=cbcolors[2]) +
-      circle(tracks[["cnvs"]], geom = "rect", aes(fill=type, color=type),
-             trackWidth=3, radius=28) +  
+             radius=25, color="steelblue") +
+      circle(tracks[["cnvs"]], geom = "rect", aes(fill=type, color=NA),
+             trackWidth=3, radius=28) +
+      scale_fill_manual(values=cbcolors[c(4,2)]) +
+      guides(fill=FALSE) +
       circle(tracks[["gr.cn"]], geom = "segment",
              color="black",
              fill="black",
              aes(y=cn),
              grid = FALSE, size=0.5, radius=31, trackwidth=3) +
       circle(tracks[["hg"]], geom = "ideo",
-             aes(fill = "beige",  color = "gray"),
+             fill="beige", color="gray",
              radius=35,
              trackwidth=1) +
-      scale_fill_identity() +
-      scale_color_identity() +
-      labs(title=tracks[["id"]])
+       labs(title=tracks[["id"]])
   } else {
     cnvs <- tracks[["cnvs"]]
     cnvs$CNV <- cnvs$type
