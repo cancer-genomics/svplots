@@ -1,5 +1,5 @@
 cnTrack <- function(dirs, id, nt=200){
-  cbs_file <- file.path(dirs[["0cbs"]], paste0(id, ".rds"))
+  cbs_file <- file.path("data/segment/0cbs", paste0(id, ".rds"))
   gr.cn <- readRDS(cbs_file)
   cn <- gr.cn$seg.mean
   cn[cn < -2.5] <- -2.5
@@ -37,20 +37,20 @@ cnTrack <- function(dirs, id, nt=200){
 #' @seealso \code{\link[GenomeInfoDb]{seqlevelsStyle}}
 circosTracks <- function(id, dirs, slstyle="NCBI", MINSEP=50e3){
   id.rds <- paste0(id, ".rds")
-  svs <- readRDS(file.path(dirs["1deletions"], id.rds))
+  ##svs <- readRDS(file.path(dirs["1deletions"], id.rds))
+  svs <- readRDS(file.path("data/segment/1deletions", id.rds))
   d <- granges(variant(svs))
   d$type <- rep("del", length(d))
-  amps <- readRDS(file.path(dirs["2amplicons"], id.rds))
+  amps <- readRDS(file.path("data/segment/2amplicons", id.rds))
   a <- granges(amplicons(amps))
   a$type <- rep("amp", length(a))
   seqlevelsStyle(d) <- slstyle
   seqlevelsStyle(a) <- slstyle
   names(d) <- names(a) <- NULL
-
   ## ideogram
   hg <- getIdeoGR(d)
   names(hg) <- NULL
-  rfile <- file.path(dirs["rearrangements/3blat_unmapped"], id.rds)
+  rfile <- file.path("data/rearrangements/3blat_unmapped", id.rds)
   if(file.exists(rfile)){
     rlist <- readRDS(rfile)
     r <- linkedBins(rlist)

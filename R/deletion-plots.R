@@ -1068,6 +1068,10 @@ gridDeletionParams <- function(object,
 #' 
 #' @export
 grid_params <- function(sv, dirs, id, group=1, gaps){
+  if(length(sv)==0) {
+    warning("sv object has length zero")
+    return(NULL)
+  }
   accent <- addalpha(brewer.pal(12, "Paired"), 0.2)
   gray <- addalpha("gray10", alpha=0.2)
   lightblue <- addalpha("lightblue", alpha=0.9)
