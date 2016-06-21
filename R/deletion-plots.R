@@ -267,7 +267,7 @@ plotTagDensityComplex2 <- function(object,
   yaxis <- yaxisLabels(ylim, n=6, logscale=TRUE)
   xlim_g <- GRanges(seqnames(g), IRanges(start(xlim), end(xlim)))
   filterList2 <- subsetFilterList(filterList, xlim_g)
-  any_filters <- sum(elementLengths(filterList2)) > 0
+  any_filters <- sum(elementNROWS(filterList2)) > 0
   cnv <- variant(object)
   pushViewport(vps[["vlayout"]])
   pushViewport(vps[["vpl1"]])
@@ -303,7 +303,7 @@ plotTagDensityComplex2 <- function(object,
   grid.segments(y0=unit(ys+h/2, "native"),
                 y1=unit(ys+h/2, "native"),
                 gp=gpar(lty=2, col="gray"))
-  ##ys <- rep(ys, elementLengths(filterList))
+  ##ys <- rep(ys, elementNROWS(filterList))
   ##h <- diff(ys)[1]*1/2
   ##filters <- unlist(GRangesList(lapply(filterList, reduce)))
   ##seqlevels(filters, force=TRUE) <- chromosome(g)[1]
@@ -1034,7 +1034,7 @@ gridDeletionParams <- function(object,
                                pch_color="gray",
                                gaps_gr=gaps_gr,
                                seg_color="black"){
-  segs <- readRDS(file.path(dirs[["0cbs"]], paste0(id, ".rds")))
+  segs <- readRDS(file.path(dirs, paste0(id, ".rds")))
   frac <- intOverWidth(segs, gaps_gr)
   segs <- segs[ frac < 0.8 ]
   xlim <- .xlimit_deletion(object, group, zoom.out)
@@ -1060,7 +1060,7 @@ gridDeletionParams <- function(object,
 #'
 #' 
 #' @param sv a \code{StructuralVariant} object
-#' @param dirs a \code{DataPaths} object
+#' @param dirs file path to segmentation data
 #' @param id  sample id character string
 #' @param group grouping factor for the deletions
 #' @param gaps a \code{GRanges} object containing centromeres,
@@ -1078,9 +1078,6 @@ grid_params <- function(sv, dirs, id, group=1, gaps){
   grayLight <- addalpha("gray", alpha=0.1)
   gray <- addalpha("gray10", alpha=0.2)
   accent <- addalpha(brewer.pal(12, "Paired"), 0.2)
-  ##gaps_gr <- readRDS(file.path(dirs[["extdata"]], "gaps_gr_hg19.rds"))
-  ##views <- loadViews(id, dirs)
-  ##filters <- loadFilters()
   filters <- listGenomeFilters()
   ## make names short
   names(filters) <- c("centr", "gaps", "germ", "out", "tx")
@@ -1178,7 +1175,7 @@ draw_ideogram2 <- function(object, vps, params, pview, subset=TRUE){
   yaxis <- yaxisLabels(ylim, n=6, logscale=TRUE)
   xlim_g <- GRanges(seqnames(g), IRanges(start(xlim), end(xlim)))
   filterList2 <- subsetFilterList(filterList, xlim_g)
-  any_filters <- sum(elementLengths(filterList2)) > 0
+  any_filters <- sum(elementNROWS(filterList2)) > 0
   cnv <- variant(object)
   pushViewport(vps[["vlayout"]])
   pushViewport(vps[["vpl2"]])
@@ -1312,7 +1309,7 @@ draw_filters <- function(object, vps, params, pview, subset=TRUE){
   yaxis <- yaxisLabels(ylim, n=6, logscale=TRUE)
   xlim_g <- GRanges(seqnames(g), IRanges(start(xlim), end(xlim)))
   filterList2 <- subsetFilterList(filterList, xlim_g)
-  any_filters <- sum(elementLengths(filterList2)) > 0
+  any_filters <- sum(elementNROWS(filterList2)) > 0
   cnv <- variant(object)
   pushViewport(vps[["vlayout"]])
   pushViewport(vps[["vpl1"]])

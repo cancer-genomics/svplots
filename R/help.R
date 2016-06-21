@@ -13,7 +13,7 @@
 #' @importFrom lattice lsegments current.panel.limits xyplot panel.abline panel.xyplot
 #' @import ggbio 
 #' @import graph
-#' @importMethodsFrom S4Vectors elementLengths
+#' @importMethodsFrom S4Vectors elementNROWS
 #' @importMethodsFrom GenomicAlignments first last
 #' @importFrom IRanges IRanges
 #' @importFrom Rgraphviz layoutGraph plot
@@ -21,4 +21,6 @@
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom biovizBase getIdeoGR
 #' @importFrom svcnvs listGenomeFilters
+#' @importMethodsFrom SummarizedExperiment rowRanges assays
+#' @importFrom SummarizedExperiment SummarizedExperiment
 NULL
