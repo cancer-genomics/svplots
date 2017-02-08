@@ -65,7 +65,7 @@ circosTracks <- function(rear.list, slstyle="NCBI", MINSEP=50e3){
     r <- keepSeqlevels(r, seqlevels(d))
     seqinfo(r) <- seqinfo(hg)
     lt <- r$linked.to
-    seqlevels(lt, pruning.mode=coarse) <- seqlevels(r)
+    seqlevels(lt, pruning.mode="coarse") <- seqlevels(r)
     seqinfo(lt) <- seqinfo(r)
     r$linked.to <- lt
     names(r) <- NULL
