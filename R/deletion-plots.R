@@ -260,8 +260,8 @@ plotTagDensityComplex2 <- function(object,
   view <- view[k, ]
   xscale <- range(c(start(rowRanges(view)), end(rowRanges(view))))
   td <- assays(view)[,1]
-  td <- threshold(td, lim=ylim)
-  segs$seg.mean <- threshold(segs$seg.mean, lim=ylim)
+  td <- threshold(td, lim=(ylim + c(0.1, 0)))
+  segs$seg.mean <- threshold(segs$seg.mean, lim=ylim + c(0.1, 0))
   locs <- pretty(range(xlim), n=10)
   labels <- prettyNum(locs/1000, big.mark=",")
   yaxis <- yaxisLabels(ylim, n=6, logscale=TRUE)
