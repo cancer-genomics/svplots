@@ -9,7 +9,7 @@
 #' @import GenomicRanges
 #' @import GenomeInfoDb
 #' @import grid
-#' @importFrom ggplot2 theme ggtitle aes labs element_text
+#' @import ggplot2 
 #' @importFrom lattice lsegments current.panel.limits xyplot panel.abline panel.xyplot
 #' @import ggbio 
 #' @import graph
