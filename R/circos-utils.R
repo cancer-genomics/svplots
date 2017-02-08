@@ -1,6 +1,7 @@
-cnTrack <- function(dirs, id, nt=200){
-  cbs_file <- file.path("data/segment/0cbs", paste0(id, ".rds"))
-  gr.cn <- readRDS(cbs_file)
+cnTrack <- function(segments, nt=200){
+  ##cbs_file <- file.path("data/segment/0cbs", paste0(id, ".rds"))
+  ##gr.cn <- readRDS(cbs_file)
+  gr.cn <- segments
   cn <- gr.cn$seg.mean
   cn[cn < -2.5] <- -2.5
   cn[cn > 4] <- 4
@@ -35,13 +36,15 @@ cnTrack <- function(dirs, id, nt=200){
 #'   rearrangements.
 #' 
 #' @seealso \code{\link[GenomeInfoDb]{seqlevelsStyle}}
-circosTracks <- function(id, dirs="data", slstyle="NCBI", MINSEP=50e3){
-  id.rds <- paste0(id, ".rds")
+circosTracks <- function(rear.list, slstyle="NCBI", MINSEP=50e3){
+  ##id.rds <- paste0(id, ".rds")
   ##svs <- readRDS(file.path(dirs["1deletions"], id.rds))
-  svs <- readRDS(file.path("data/segment/1deletions", id.rds))
+  ##svs <- readRDS(file.path("data/segment/1deletions", id.rds))
+  svs <- rear.list[["deletions"]]
   d <- granges(variant(svs))
   d$type <- rep("del", length(d))
-  amps <- readRDS(file.path("data/segment/2amplicons", id.rds))
+  amps <- rear.list[["amplicons"]]
+  ##amps <- readRDS(file.path("data/segment/2amplicons", id.rds))
   a <- granges(amplicons(amps))
   a$type <- rep("amp", length(a))
   seqlevelsStyle(d) <- slstyle
@@ -50,28 +53,29 @@ circosTracks <- function(id, dirs="data", slstyle="NCBI", MINSEP=50e3){
   ## ideogram
   hg <- getIdeoGR(d)
   names(hg) <- NULL
-  rfile <- file.path("data/rearrangements/3blat_unmapped", id.rds)
-  if(file.exists(rfile)){
-    rlist <- readRDS(rfile)
-    r <- linkedBins(rlist)
-    if(length(r) > 0){
-      seqlevelsStyle(r) <- slstyle
-      seqlevelsStyle(r$linked.to) <- slstyle
-      r <- keepSeqlevels(r, seqlevels(d))
-      seqinfo(r) <- seqinfo(hg)
-      lt <- r$linked.to
-      seqlevels(lt, force=TRUE) <- seqlevels(r)
-      seqinfo(lt) <- seqinfo(r)
-      r$linked.to <- lt
-      names(r) <- NULL
-    } else {
-      r$linked.to <- GRanges()
-    }
-  }  else {
-    r <- GRanges()
+  ##rfile <- file.path("data/rearrangements/3blat_unmapped", id.rds)
+  ##
+  ##if(file.exists(rfile)){
+  rlist <- rear.list[["rears"]]
+  ##rlist <- readRDS(rfile)
+  r <- linkedBins(rlist)
+  if(length(r) > 0){
+    seqlevelsStyle(r) <- slstyle
+    seqlevelsStyle(r$linked.to) <- slstyle
+    r <- keepSeqlevels(r, seqlevels(d))
+    seqinfo(r) <- seqinfo(hg)
+    lt <- r$linked.to
+    seqlevels(lt, pruning.mode=coarse) <- seqlevels(r)
+    seqinfo(lt) <- seqinfo(r)
+    r$linked.to <- lt
+    names(r) <- NULL
+  } else {
     r$linked.to <- GRanges()
   }
-  gr.cn <- cnTrack(dirs, id, 200) ## number of cn estimates per chrom.
+  ##r <- GRanges()
+  ##r$linked.to <- GRanges()
+  ##}
+  gr.cn <- cnTrack(rear.list[["segments"]], 200) ## number of cn estimates per chrom.
   seqlevelsStyle(gr.cn) <- slstyle
 
   hg <- keepSeqlevels(hg, seqlevels(d))
@@ -90,7 +94,7 @@ circosTracks <- function(id, dirs="data", slstyle="NCBI", MINSEP=50e3){
   cnvs <- c(d, a)
   cnvs$type <- factor(cnvs$type, levels=c("del", "amp"))
   seqinfo(cnvs) <- seqinfo(hg)
-  list(cnvs=cnvs, r=r, hg=hg, gr.cn=gr.cn, id=id)
+  list(cnvs=cnvs, r=r, hg=hg, gr.cn=gr.cn)
 }
 
 #' Create a circos plot with tracks for rearrangements, copy number
@@ -113,26 +117,31 @@ circosPlot <- function(tracks, cbcolors){
   r <- tracks[["r"]]
   seqinfo(r) <- seqinfo(tracks[["hg"]])
   seqinfo(r$linked.to) <- seqinfo(r)
+  cnvs <- tracks[["cnvs"]]
   if(length(r) > 0){
     p <- ggbio(buffer=0) +
-      circle(tracks[["hg"]], geom = "text", aes(label = seqnames),
-             vjust = 0, size = 3, radius=38) +
-      circle(r, geom = "link", linked.to = "linked.to",
-             radius=25, color="steelblue") +
-      circle(tracks[["cnvs"]], geom = "rect", aes(fill=type, color=NA),
-             trackWidth=3, radius=28) +
-      scale_fill_manual(values=cbcolors[c(4,2)]) +
-      guides(fill=FALSE) +
-      circle(tracks[["gr.cn"]], geom = "segment",
-             color="black",
-             fill="black",
-             aes(y=cn),
-             grid = FALSE, size=0.5, radius=31, trackwidth=3) +
-      circle(tracks[["hg"]], geom = "ideo",
-             fill="beige", color="gray",
-             radius=35,
-             trackwidth=1) +
-       labs(title=tracks[["id"]])
+         circle(tracks[["hg"]], geom = "text", aes(label = seqnames),
+                vjust = 0, size = 3, radius=38) +
+         circle(r, geom = "link", linked.to = "linked.to",
+                radius=25, color="steelblue") +
+         circle(cnvs, geom = "rect",
+                aes(fill=type, color=type),
+                trackWidth=3, radius=28) +
+         circle(tracks[["gr.cn"]], geom = "segment",
+                color="black",
+                fill="black",
+                aes(y=cn),
+                grid = FALSE, size=0.5, radius=31, trackwidth=3) +
+         circle(tracks[["hg"]], geom = "ideo",
+                fill="beige", color="gray",
+                radius=35,
+                trackwidth=1)
+       p <- p +
+         scale_fill_manual(values=cbcolors[c(4,2)]) +
+         scale_color_manual(values=cbcolors[c(4, 2)]) +
+         guides(fill=guide_legend(title="focal CNV"),
+         color=guide_legend(title="focal CNV")) +
+         labs(title=tracks[["id"]])
   } else {
     cnvs <- tracks[["cnvs"]]
     cnvs$CNV <- cnvs$type
