@@ -32,7 +32,7 @@ Collate:
     'color_palettes.R'
     'deletion-plots.R'
     'preprocess-plots.R'
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1
 Suggests:
     svdata,
     testthat
