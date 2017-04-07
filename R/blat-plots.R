@@ -27,7 +27,7 @@ prettyLayout <- function(npanels, maxperpage=9, nrow=3, ncol=3){
 }
 
 #' Lattice-style plot of results from blat analysis
-#' 
+#'
 #' @return a \code{trellis} object
 #' @export
 #' @param blat data.frame of blat records

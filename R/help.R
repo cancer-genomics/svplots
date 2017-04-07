@@ -9,9 +9,9 @@
 #' @import GenomicRanges
 #' @import GenomeInfoDb
 #' @import grid
-#' @import ggplot2 
+#' @import ggplot2
 #' @importFrom lattice lsegments current.panel.limits xyplot panel.abline panel.xyplot
-#' @import ggbio 
+#' @import ggbio
 #' @import graph
 #' @importMethodsFrom S4Vectors elementNROWS
 #' @importMethodsFrom GenomicAlignments first last

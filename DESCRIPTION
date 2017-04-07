@@ -24,13 +24,14 @@ Imports:
     svcnvs (>= 0.0.23)
 License: Artistic-2.0
 LazyData: true
-Collate:
+Collate: 
     'help.R'
     'amplicon-plots.R'
     'blat-plots.R'
     'circos-utils.R'
     'color_palettes.R'
     'deletion-plots.R'
+    'fusions.R'
     'preprocess-plots.R'
 RoxygenNote: 6.0.1
 Suggests:

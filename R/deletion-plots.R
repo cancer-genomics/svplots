@@ -1,43 +1,5 @@
-setGeneric("interstitialLegend", function(object, accent) standardGeneric("interstitialLegend"))
-setGeneric("seq_along2", function(along.with) standardGeneric("seq_along2"))
-
-setGeneric("boxIdiogram", function(object) standardGeneric("boxIdiogram"))
-
-
-setClass("IdiogramParams", representation(seqnames="character",
-                                          seqlengths="numeric",
-                                          unit="character",
-                                          genome="character",
-                                          box="list"))
-
-IdiogramParams <- function(seqnames=character(),
-                           seqlengths=numeric(), unit="kb", genome="hg19",
-                           box=list(xlim=ILimit(), color="blue")){
-  new("IdiogramParams", seqnames=seqnames, seqlengths=seqlengths, unit=unit,
-      genome=genome, box=box)
-}
-
-setClass("ILimit", contains="IRanges")
-
-setMethod("boxIdiogram", "IdiogramParams", function(object) object@box)
-setMethod("chromosome", "IdiogramParams", function(object) object@seqnames)
-setMethod("genome", "IdiogramParams", function(x) x@genome)
-setMethod("seqlengths", "IdiogramParams", function(x) x@seqlengths)
-setMethod("seqnames", "IdiogramParams", function(x) x@seqnames)
-
-ILimit <- function(...)  as(IRanges(...), "ILimit")
-
-#' Return the endpoints of an IRanges object as a numeric vector
-#'
-#' @keywords internal
-#' @aliases range,ILimit-method
-#' @rdname range-method
-setMethod("range", "ILimit", function(x, ...) c(start(x), end(x)))
-
-setMethod("seq_along2", "ILimit", function(along.with){
-  seq(start(along.with), end(along.with), 1)
-})
-
+#' @include ILimit-methods.R
+NULL
 
 .find_xlim_percent <- function(g, percent=0.05){
   wd <- width(g)
