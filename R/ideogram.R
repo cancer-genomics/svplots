@@ -1,4 +1,5 @@
 #' @include AllGenerics.R
+NULL
 
 IdiogramParams <- function(seqnames=character(),
                            seqlengths=numeric(), unit="kb", genome="hg19",
@@ -12,6 +13,42 @@ setMethod("chromosome", "IdiogramParams", function(object) object@seqnames)
 setMethod("genome", "IdiogramParams", function(x) x@genome)
 setMethod("seqlengths", "IdiogramParams", function(x) x@seqlengths)
 setMethod("seqnames", "IdiogramParams", function(x) x@seqnames)
+
+.find_xlim_percent <- function(g, percent=0.05){
+  wd <- width(g)
+  w <- wd/percent
+  d <- (w-wd)*1/2
+  st <- max(start(g)[1]-d, 1)
+  en <- min(end(g)[1]+d, seqlengths(g)[chromosome(g)])
+
+  d1 <- start(g)-st
+  d2 <- en-end(g)
+  if(d1 & d2 > 0){
+    d3 <- min(d1, d2)
+    st <- start(g)[1]-d3
+    en <- end(g)[1]+d3
+  }
+  lim <- as.integer(c(st, en))
+  ILimit(start=lim[1], end=lim[2])
+}
+
+xlimTagDensity <- function(si, xlim, percent=0.1){
+  g <- GRanges(seqnames(si), IRanges(xlim[1], xlim[2]))
+  seqlevels(g,force=TRUE) <- chromosome(g)
+  seqlengths(g) <- seqlengths(si)[seqlevels(g)]
+  .find_xlim_percent(g, percent)
+}
+
+.ideogramParams <- function(object, params){
+  xlim <- params[["xlim"]]
+  xlim_tagd <- xlimTagDensity(seqinfo(object)[chromosome(object)[1], ], xlim, 0.1)
+  chrom <- chromosome(object)[1]
+  iparams <- IdiogramParams(seqnames=chrom,
+                            genome="hg19",
+                            seqlengths=seqlengths(object)[chrom],
+                            box=list(xlim=xlim_tagd, color="blue", lwd=2))
+  iparams
+}
 
 ggIdeogram <- function(chroms, fusion.dat, g.params){
   ip1 <- svplots:::IdiogramParams(chroms[1])

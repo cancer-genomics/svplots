@@ -129,7 +129,8 @@ ggClippedExons <- function(data.list, params, roi){
   p
 }
 
-
+#'@include ideogram.R
+NULL
 
 ggAxisLabel <- function(data.list, params, label){
   gene <- params$gene.name

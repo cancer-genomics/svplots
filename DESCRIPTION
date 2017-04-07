@@ -1,6 +1,6 @@
 Package: svplots
 Title: Visualization tools for structural variant analyses
-Version: 0.0.12
+Version: 0.0.13
 Authors@R: person("Rob", "Scharpf", email = "rscharpf@jhu.edu", role = c("aut", "cre"))
 Description: Provides tools for plotting structural variant sequencing data.
 Depends:
@@ -26,11 +26,15 @@ License: Artistic-2.0
 LazyData: true
 Collate: 
     'help.R'
+    'AllClasses.R'
+    'AllGenerics.R'
+    'ILimit-methods.R'
     'amplicon-plots.R'
     'blat-plots.R'
     'circos-utils.R'
     'color_palettes.R'
     'deletion-plots.R'
+    'ideogram.R'
     'fusions.R'
     'preprocess-plots.R'
 RoxygenNote: 6.0.1

@@ -1,3 +1,6 @@
+#' @include AllGenerics.R
+NULL
+
 ##
 ## https://github.com/mylesmharrison/colorRampPaletteAlpha/blob/master/colorRampPaletteAlpha.R
 ##

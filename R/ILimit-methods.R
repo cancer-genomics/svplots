@@ -1,4 +1,8 @@
+#' @include AllGenerics.R
+NULL
+
 ILimit <- function(...)  as(IRanges(...), "ILimit")
+
 #' Return the endpoints of an IRanges object as a numeric vector
 #'
 #' @keywords internal

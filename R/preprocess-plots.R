@@ -1,4 +1,4 @@
-#' @include help.R
+#' @include AllGenerics.R
 NULL
 
 #' threshold values of a numeric vector

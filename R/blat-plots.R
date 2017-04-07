@@ -1,3 +1,6 @@
+#' @include AllGenerics.R
+NULL
+
 prettyLayout <- function(npanels, maxperpage=9, nrow=3, ncol=3){
   if(npanels > 9){
     npages <- ceiling(npanels/9)

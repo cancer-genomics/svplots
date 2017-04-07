@@ -1,4 +1,4 @@
-#' @include help.R
+#' @include AllGenerics.R
 NULL
 
 #' Plot amplicons as nodes and the links between amplicons as edges
@@ -50,8 +50,8 @@ plot_amplicons <- function(ag, col_list=qualitativeColors()){
   graph_object <- layoutGraph(g1,
                               attrs=attrs,
                               nodeAttrs=nodeAttrs)
-  if(numEdges(graph_object) > 0){
-    renderGraph(graph_object)
-  } else plot(graph_object)
+  ## if(numEdges(graph_object) > 0){
+  ##   renderGraph(graph_object)
+  ## } else plot(graph_object)
   graph_object
 }

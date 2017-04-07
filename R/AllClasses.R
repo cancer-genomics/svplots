@@ -7,6 +7,4 @@ setClass("IdiogramParams", representation(seqnames="character",
                                           genome="character",
                                           box="list"))
 
-
 setClass("ILimit", contains="IRanges")
-

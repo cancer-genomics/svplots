@@ -1,3 +1,7 @@
+#' @include AllGenerics.R
+NULL
+
+
 cnTrack <- function(segments, nt=200){
   ##cbs_file <- file.path("data/segment/0cbs", paste0(id, ".rds"))
   ##gr.cn <- readRDS(cbs_file)
