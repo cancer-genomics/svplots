@@ -343,59 +343,7 @@ grid.idiogram <- function(params){
               name="idiogram")
 }
 
-getCytoband <- function(params){
-  path <- system.file("extdata", package="SNPchip", mustWork=TRUE)
-  cytoband <- read.table(file.path(path, paste("cytoBand_",
-                                               genome(params), ".txt", sep="")),
-                         as.is=TRUE, header=FALSE)
-  colnames(cytoband) <- c("chrom", "start", "end", "name", "gieStain")
-  cytoband <- cytoband[cytoband[, "chrom"] %in% seqnames(params), ]
-  rownames(cytoband) <- as.character(cytoband[, "name"])
-  return(cytoband)
-}
 
-.drawStalk <- function(starts, ends){
-  deltas <- (ends-starts)/3
-  y0 <- rep(0.2, length(starts))
-  y1 <- rep(0.8, length(starts))
-  lsegments(starts+deltas, y0, starts+deltas, y1)
-  lsegments(ends+deltas, y0, ends+deltas, y1)
-}
-
-idiogram_coordinates <- function(params){
-  build <- genome(params)
-  cytoband <- getCytoband(params)
-  cytoband_p <- cytoband[grep("^p", rownames(cytoband), value=TRUE), ]
-  cytoband_q <- cytoband[grep("^q", rownames(cytoband), value=TRUE), ]
-  N <- nrow(cytoband)
-  p.bands <- nrow(cytoband_p)
-  left_cuts <- c(1, p.bands+1)
-  right_cuts <- c(N, p.bands)
-  cut.right <- cut.left <- rep(FALSE, N)
-  cut.left[left_cuts] <- TRUE
-  cut.right[right_cuts] <- TRUE
-  ## this is a "stalk", do not draw box. Draw two vertical lines instead
-  is_stalk <- cytoband[, "gieStain"] == "stalk"
-  index_stalk <- which(is_stalk)
-  cut.right[index_stalk - 1] <- TRUE
-  cut.left[index_stalk  + 1] <- TRUE
-  colors <- .cytobandColors(cytoband[, "gieStain"])
-  xx <- c(0, cytoband[nrow(cytoband), "end"])
-##yy <- c(0,1)
-  starts <- cytoband[, "start"]
-  ends <- cytoband[, "end"]
-  if(any(is_stalk)) .drawStalk(starts[is_stalk], ends[is_stalk])
-  taper_right <- taper_left <- rep(0, length(starts))
-  taper_left[cut.left] <- 0.15
-  taper_right[cut.right] <- 0.15
-
-  data.frame(xleft=starts,
-             xright=ends,
-             taper_right=taper_right,
-             taper_left=taper_left,
-             gieStain=cytoband$gieStain,
-             stringsAsFactors=FALSE)
-}
 
 .connect_ideogram <- function(vpdata, vps, vps2, iparams, xscale){
   pushViewport(vpdata)

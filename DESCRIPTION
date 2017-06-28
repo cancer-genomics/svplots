@@ -30,7 +30,6 @@ Collate:
     'AllGenerics.R'
     'ILimit-methods.R'
     'amplicon-plots.R'
-    'blat-plots.R'
     'circos-utils.R'
     'color_palettes.R'
     'deletion-plots.R'

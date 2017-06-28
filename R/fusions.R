@@ -1,5 +1,4 @@
-.gg_clipped_tx1 <- function(data.list, params, roi){
-  ##browser()
+.gg_clipped_tx1 <- function(data.list, params, roi, clip=FALSE){
   manual.colors <- c(params[["exon.color"]], params[["clipped.color"]])
   ##rreads <- data.list[["rearranged.reads"]]
   gene <- params[["gene.name"]]
@@ -10,6 +9,9 @@
   strand <- params$rearrangedStrand
   is.minus <- strand=="-"
   exons$is_clipped <- factor(exons$is_clipped, levels=c("FALSE", "TRUE"))
+  if(clip){
+    exons <- exons[exons$is_clipped != TRUE]
+  }
   manual.colors <- unique(manual.colors[sort(as.integer(exons$is_clipped))])
   if(!"rank" %in% colnames(exons)){
     exons$rank <- exons$exon_rank
@@ -38,28 +40,30 @@
               color="transparent", alpha=0.9, inherit.aes=FALSE) +
     geom_hline(yintercept=0, color="black") +
     geom_rect(size=1) +
-    scale_y_continuous(breaks=0, labels="5'", expand=c(0, 0.5)) +
+    scale_y_continuous(breaks=0, labels="5'", expand=c(0, 0), limits=c(-0.5, 0.5)) +
+    scale_x_continuous(expand=c(0,0)) +
     guides(fill=FALSE, color=FALSE) +
     geom_vline(xintercept=c(clip.at-20, clip.at + 20), linetype="dashed") +
     scale_color_manual(values=manual.colors) +
     scale_fill_manual(values=manual.colors) +
     theme(axis.text.x=element_blank(),
           axis.title=element_blank(),
-          axis.text.y=element_text(size=10),
+          axis.text.y=element_text(size=12),
           axis.line=element_blank(),
           axis.ticks=element_blank(),
           panel.background=element_rect(fill=params[["background.color"]]),
           panel.grid.minor.x=element_line(color="transparent"),
           panel.border=element_rect(color="transparent", fill=NA),
           ## top, right, bottom, left
-          plot.margin=unit(c(1, -0.1, 1, 1), "lines")) +
+          ##plot.margin=unit(c(1, -0.1, 1, 1), "lines")) +
+          plot.margin=unit(c(1, 0, 1, 0), "lines")) +
     ggtitle(params[["gene.name"]])
-  if(is.minus) p <- p + scale_x_reverse()
+  if(is.minus) p <- p + scale_x_reverse(expand=c(0,0))
   p
 }
 
 
-.gg_clipped_tx2 <- function(data.list, params, roi){
+.gg_clipped_tx2 <- function(data.list, params, roi, clip=FALSE){
   manual.colors <- c(params[["exon.color"]], params[["clipped.color"]])
   rreads <- data.list[["rearranged.reads"]]
   gene <- params[["gene.name"]]
@@ -69,6 +73,9 @@
   strand <- params$strand
   is.minus <- strand=="-"
   exons$is_clipped <- factor(exons$is_clipped, levels=c("FALSE", "TRUE"))
+  if(clip){
+    exons <- exons[exons$is_clipped != TRUE]
+  }
   manual.colors <- unique(manual.colors[sort(as.integer(exons$is_clipped))])
   if(!"rank" %in% colnames(exons)){
     exons$rank <- exons$exon_rank
@@ -98,33 +105,34 @@
               color="transparent", alpha=0.9, inherit.aes=FALSE) +
     geom_hline(yintercept=0, color="black") +
     geom_rect(size=1) +
-    scale_y_continuous(breaks=0, labels="5'", expand=c(0, 0.5)) +
+    scale_y_continuous(breaks=0, labels="5'", expand=c(0, 0), limits=c(-0.5, 0.5)) +
+    scale_x_continuous(expand=c(0,0)) +
     guides(fill=FALSE, color=FALSE) +
     geom_vline(xintercept=clip.at, linetype="dashed") +
     scale_color_manual(values=manual.colors) +
     scale_fill_manual(values=manual.colors) +
     theme(axis.text.x=element_blank(),
           axis.title=element_blank(),
-          axis.text.y=element_text(size=10),
+          axis.text.y=element_text(size=12),
           axis.line=element_blank(),
           axis.ticks=element_blank(),
           panel.background=element_rect(fill=params[["background.color"]]),
           panel.grid.minor.x=element_line(color="transparent"),
           panel.border=element_rect(color="transparent", fill=NA),
           ## top, right, bottom, left
-          plot.margin=unit(c(1, -0.1, 1, 1), "lines")) +
+          plot.margin=unit(c(1, 0, 1, 0), "lines")) +
     ggtitle(params[["gene.name"]])
-  if(is.minus) p <- p + scale_x_reverse()
+  if(is.minus) p <- p + scale_x_reverse(expand=c(0,0))
   p
 }
 
 #' @param data.list a list.  see readFusionData
-ggClippedExons <- function(data.list, params, roi){
+ggClippedExons <- function(data.list, params, roi, clip=FALSE){
   is.first <- params$is.first
   if(is.first){
-    p <- .gg_clipped_tx1(data.list, params, roi)
+    p <- .gg_clipped_tx1(data.list, params, roi, clip=clip)
   } else{
-    p <- .gg_clipped_tx2(data.list, params, roi)
+    p <- .gg_clipped_tx2(data.list, params, roi, clip=clip)
   }
   p
 }
@@ -205,7 +213,7 @@ gg_fusion_minus <- function(dat, gene1.params, gene2.params){
                  aes(x=min(start), xend=max(end), y=0, yend=0),
                  color="black") +
     geom_rect(size=1) + 
-    scale_y_continuous(expand=c(0, 0), breaks=0, label="5'") +
+    scale_y_continuous(expand=c(0, 0), limits=c(-0.5, 0.5), breaks=0, label="5'") +
     scale_x_reverse(expand=c(0, 0), breaks=sequence_jxn, labels=jxn.label) +
     ##geom_text(aes(x=midx, y=1.3), color="black", size=3) +
     ylab("") + xlab("") +
@@ -260,7 +268,7 @@ gg_fusion_plus <- function(dat, gene1.params, gene2.params){
     geom_rect(size=1) + 
     scale_y_continuous(limits=c(-0.5, 0.5),
                        expand=c(0, 0), breaks=0, label="5'") +
-    scale_x_continuous(breaks=sequence_jxn, labels=jxn.label) +
+    scale_x_continuous(breaks=sequence_jxn, labels=jxn.label, expand=c(0,0)) +
     ylab("") + xlab("") +
     guides(fill=FALSE, color=FALSE) +
     scale_color_manual(values=gene.colors) +
@@ -276,7 +284,15 @@ gg_fusion_plus <- function(dat, gene1.params, gene2.params){
           plot.margin=unit(c(0.5, 1, 0, 1), "mm")) #+
 }
 
-ggRearrangedReads <- function(reads.df, g.params, roi, reverse.roi){
+getLegend<-function(myggplot){
+  tmp <- ggplot_gtable(ggplot_build(myggplot))
+  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+  legend <- tmp$grobs[[leg]]
+  return(legend)
+}
+
+
+ggRearrangedReads2 <- function(reads.df, g.params, roi, reverse.roi){
   if(reverse.roi) {
     roi <- roi[2:1]
     g.params <- g.params[2:1]
@@ -308,6 +324,36 @@ ggRearrangedReads <- function(reads.df, g.params, roi, reverse.roi){
   improp <- improp[order(improp$start),  ]
   reads.gene1[!reads.gene1$is.split, ] <- improp
   ##xlim <- c(min(improp$start), roi$bp.jxn[1])
+  if(FALSE){
+    ## this dosn't work because sometimes we need to reverse the coordinates of only one panel
+	  x <- rbind(reads.gene1, reads.gene2)
+	  x$transcript <- factor(x$transcript, levels=c(reads.gene1$transcript[1],
+	                                                reads.gene2$transcript[2]))
+	  ggplot(x,
+	         aes(xmin=start, xmax=end, ymin=pair.id-0.3,
+	             ymax=pair.id+0.3)) +
+	    geom_rect(##data=subset(reads.df, transcript==gene1)[1, ],
+        aes(xmin=-Inf, xmax=+Inf, ymin=-Inf, ymax=+Inf),
+        fill=back.colors[1], alpha=0.5, inherit.aes=FALSE) +
+	    geom_rect(alpha=0.9, aes(fill=type)) +
+	    scale_y_continuous(breaks=pretty(unique(x$pair.id), n=4)) +
+	    scale_x_continuous(expand=c(0, 0)) +
+	    theme(axis.text.x=element_blank(),
+	          axis.ticks=element_blank(),
+	          axis.text.y=element_blank(),
+	          panel.background=element_rect(fill="transparent"),
+	          panel.border=element_rect(color="transparent", fill=NA),
+	          strip.text=element_blank(),
+	          strip.background=element_blank(),
+	          legend.text=element_text(size=7),
+	          legend.key=element_rect(size=0.5))+
+      ## top, right, bottom, left
+      ##plot.margin=unit(c(0.1, 0, 0.01, 0.5), "npc")) +
+	    ##ylab("rearranged\nread pairs") +
+      xlab("") +
+	    guides(fill=FALSE) +
+	    facet_wrap(~transcript, scale="free_x")
+  }
   g1 <- ggplot(reads.gene1,
          aes(xmin=start, xmax=end, ymin=pair.id-0.3,
              ymax=pair.id+0.3)) +
@@ -325,10 +371,10 @@ ggRearrangedReads <- function(reads.df, g.params, roi, reverse.roi){
           strip.text=element_blank(),
           strip.background=element_blank(),
           legend.text=element_text(size=7),
-          legend.key=element_rect(size=0.5),
+          legend.key=element_rect(size=0.5)) +
           ## top, right, bottom, left
-          plot.margin=unit(c(0.1, 0, 0.01, 0.5), "npc")) +
-    ylab("rearranged\nread pairs") + xlab("") +
+          ##plot.margin=unit(c(0.1, 0, 0.01, 0), "npc")) +
+    ##ylab("rearranged\nread pairs") + xlab("") +
     guides(fill=FALSE)
   if(strand1 == "-") g1 <- g1 + scale_x_reverse(expand=c(0, 0))
   g2 <- ggplot(reads.gene2,
@@ -343,19 +389,25 @@ ggRearrangedReads <- function(reads.df, g.params, roi, reverse.roi){
           axis.text.y=element_blank(),
           panel.background=element_rect(fill="transparent"),
           panel.border=element_rect(color="transparent", fill=NA),
+
           strip.text=element_blank(),
           strip.background=element_blank(),
           legend.text=element_text(size=7),
           legend.key=element_rect(size=0.5),
           ## top, right, bottom, left
-          plot.margin=unit(c(0.1, 0.45, 0.01, 0), "npc"),
+          ## plot.margin=unit(c(0.1, 0, 0.01, 0), "npc"),  +
+          ## plot.margin=unit(c(0.1, 0.45, 0.01, 0), "npc"),
           legend.key.size=unit(0.5, "cm")) +
     ylab("") + xlab("") +
     guides(fill=guide_legend(title=""))
   if(strand2=="-") g2 <- g2 + scale_x_reverse(expand=c(0, 0))
+  legend <- getLegend(g2)
+  g2 <- g2 + theme(legend.position="none")
   gg1 <- ggplotGrob(g1)
   gg2 <- ggplotGrob(g2)
-  list(gg1, gg2)
+  gg2$widths <- gg1$widths
+  gg2$heights <- gg1$heights
+  list(gg1, gg2, legend)
 }
 
 ggProtein <- function(domains, params){
@@ -589,4 +641,225 @@ gg_blank <- function(){
     theme(text=element_blank(),
           axis.ticks=element_blank(),
           panel.background=element_rect(fill="transparent"))
+}
+
+#' @export
+transcriptGrobs <- function(dat){
+  g1.clip <- ggClippedExons(dat[["fusion.dat"]],
+                            dat[["g.params"]][[1]],
+                            dat[["roi"]])
+  g.axis <- ggAxisLabel(dat[["fusion.dat"]],
+                        dat[["g.params"]][[1]], "3'")
+  gg1.clip <- ggplotGrob(g1.clip)
+  gg.axis <- ggplotGrob(g.axis)
+  gg.axis$heights <- gg1.clip$heights
+  g2.clip <- ggClippedExons(dat[["fusion.dat"]],
+                            dat[["g.params"]][[2]],
+                            dat[["roi"]])
+  gg2.clip <- ggplotGrob(g2.clip)
+  
+  g.fused <- ggTxFusion(dat[["fused.transcripts"]],
+                        dat[["g.params"]][[1]],
+                        dat[["g.params"]][[2]])
+  g.fused <- g.fused + ggtitle(dat[["fusion.dat"]]$fusion)
+##  fused1 <- ggClippedExons(dat[["fusion.dat"]],
+##                           dat[["g.params"]][[1]],
+##                           dat[["roi"]],
+##                           clip=TRUE)
+##  fused2 <- ggClippedExons(dat[["fusion.dat"]],
+##                           dat[["g.params"]][[2]],
+##                           dat[["roi"]],
+##                           clip=TRUE)
+##
+  gg.fused <- ggplotGrob(g.fused)
+  gg.fused$heights <- gg1.clip$heights
+  gg.fused$widths <- gg1.clip$widths
+
+##  gg.fused <- list(ggplotGrob(fused1), ggplotGrob(fused2))
+  gg.readlist <- ggRearrangedReads2(dat[["rreads"]], dat[["g.params"]],
+                                    dat[["roi"]], dat[["reverse.roi"]])
+
+  list(gg1.clip=gg1.clip,
+       gg2.clip=gg2.clip,
+       gg.axis=gg.axis,
+       gg.readlist=gg.readlist,
+       gg.fused=gg.fused)
+}
+
+
+#' @export
+proteinGrobs <- function(dat){
+  ## plot protein
+  g.p1 <- ggProtein(dat[["protein1"]],
+                    dat[["protein1.params"]])
+  g.p2 <- ggProtein(dat[["protein2"]],
+                    dat[["protein2.params"]])
+  gp1.clip <- ggClippedProtein1(dat[["protein1.clipped"]],
+                                dat[["protein1.params"]])
+  gp2.clip <- ggClippedProtein2(dat[["protein2.clipped"]],
+                                dat[["protein2.params"]])
+  ##load_all("integration/integration")
+  gp.fuse <- ggProteinFusion(dat[["protein.fusion"]],
+                             dat[["protein1.params"]],
+                             dat[["protein2.params"]])
+  list(g.p1=g.p1, g.p2=g.p2,
+       gp.fuse=gp.fuse,
+       gp1.clip=gp1.clip,
+       gp2.clip=gp2.clip)
+}
+
+arrangeFusionGrobs <- function(g.ideo, tx, pr, layout){
+  if(missing(layout)){
+    layout <- compositeFusionParams()
+  }
+  blank <- gg_blank()
+  grid.arrange(g.ideo,
+               tx[["gg1.clip"]],
+               tx[["gg.axis"]],
+               tx[["gg2.clip"]],
+               tx[["gg.axis"]],
+               tx[["gg.readlist"]][[1]],
+               tx[["gg.readlist"]][[2]],
+               tx[["gg.fused"]],
+               tx[["gg.axis"]],
+               pr[["g.p1"]],
+               pr[["g.p2"]],
+               pr[["gp1.clip"]],
+               pr[["gp2.clip"]],
+               blank,
+               pr[["gp.fuse"]],
+               widths=layout[["widths"]],
+               heights=layout[["heights"]],
+               layout_matrix=layout[["layout"]],
+               newpage=FALSE)
+}
+
+arrangeFusionGrobs2 <- function(tx.grobs, pt.grobs){
+  pt.widths <- c(tx.protein$protein1$aa_len[1],
+                 tx.protein$protein2$aa_len[1])
+  pt.widths1 <- pt.widths/(sum(pt.widths))
+
+  p1 <- tx.protein$protein1.clipped
+  p2 <- tx.protein$protein2.clipped
+  pt.widths2 <- c(p1$clip.start[1],
+                  p2$aa_len[1]-p2$clip.end[1])
+  pt.width2 <- sum(pt.widths2)/sum(pt.widths)
+
+  roi <- tx.protein[["roi"]]
+  ##
+  ## Draw the transcripts and proteins to scale
+  ##
+  chroms <- as.character(seqnames(roi))
+  g1.clipped <- GRanges(chroms[1], IRanges(start(roi)[1], roi$bp.jxn[1]))
+  g2.clipped <- GRanges(chroms[2], IRanges(start(roi)[2], roi$bp.jxn[2]))
+  widths <- width(roi)/sum(width(roi))
+  width2 <- sum(width(c(g1.clipped, g2.clipped)))/sum(width(roi))
+  ##fused.width <- sum(width(roi2))/sum(width(roi))
+  just <- c("left", "bottom")
+  vp <- viewport(x=unit(0, "npc"), y=unit(0.3, "npc"),
+                 width=unit(1, "npc"), height=unit(0.7, "npc"), just=c("left", "bottom"))
+  pushViewport(vp)
+  txLayout1(g.ideo, 1)
+  txLayout2(tx.grobs[["gg.readlist"]][[1]], nrow=2, x=0.2, w=0.2)
+  txLayout2(tx.grobs[["gg.readlist"]][[2]], nrow=2, x=0.4, w=0.2)
+  txLayout2(tx.grobs[["gg.readlist"]][[3]], nrow=2, x=0.6, w=0.05)
+  txLayout2(tx.grobs[["gg1.clip"]], nrow=3, x=0, w=widths[1])
+  txLayout2(tx.grobs[["gg2.clip"]], nrow=3, x=widths[1], w=widths[2])
+  txLayout2(tx.grobs[["gg.fused"]], nrow=4, x=0, w=width2-.014)
+  upViewport()
+  vp <- viewport(x=unit(0, "npc"), y=unit(0, "npc"),
+                 width=unit(1, "npc"), height=unit(0.25, "npc"), just=c("left", "bottom"))
+  pushViewport(vp)
+  ptLayout2(mygrob=ggplotGrob(pr.grobs[["gp1.clip"]]), nrow=1, x=0, w=pt.widths1[1])
+  ptLayout2(mygrob=ggplotGrob(pr.grobs[["gp2.clip"]]), nrow=1, x=pt.widths1[1], w=pt.widths1[2])
+  ptLayout2(mygrob=ggplotGrob(pr.grobs[["gp.fuse"]]), nrow=2, x=0-0.02, w=pt.width2-0.01)
+}
+
+txLayout1 <- function(mygrob, nrow, just=c("left", "center")){
+  vp <- viewport(x=unit(0.5, "npc"), y=unit(0.5, "npc"),
+                 width=unit(0.95, "npc"), height=unit(0.95, "npc"),
+                 just=rep("center", 2))
+  pushViewport(vp)
+  gl <- grid.layout(nrow=4, ncol=1,
+                    heights=unit(c(2, 4, 2, 2), "null"))
+  vp0 <- viewport(layout=gl, x=unit(0.5, "npc"),
+                  y=unit(0.5, "npc"))
+  pushViewport(vp0)
+  vp2 <- viewport(layout.pos.row=nrow, just=just)
+  pushViewport(vp2)
+  ##grid.rect()
+  grid.draw(mygrob)
+  popViewport(3)
+}
+
+ptLayout1 <- function(mygrob, nrow, just=c("left", "center")){
+  vp <- viewport(x=unit(0.5, "npc"), y=unit(0.5, "npc"),
+                 width=unit(0.95, "npc"), height=unit(0.95, "npc"),
+                 just=rep("center", 2))
+  pushViewport(vp)
+  gl <- grid.layout(nrow=3, ncol=1,
+                    heights=unit(c(1, 1, 1), "null"))
+  vp0 <- viewport(layout=gl, x=unit(0.5, "npc"),
+                  y=unit(0.5, "npc"))
+  pushViewport(vp0)
+  vp2 <- viewport(layout.pos.row=nrow, just=just)
+  pushViewport(vp2)
+  grid.draw(mygrob)
+  popViewport(3)
+}
+
+txLayout2 <- function(mygrob, nrow, x, w, just=c("left", "center")){
+  vp <- viewport(x=unit(0.5, "npc"), y=unit(0.5, "npc"),
+                 width=unit(0.95, "npc"), height=unit(0.95, "npc"),
+                 just=rep("center", 2))
+  pushViewport(vp)
+  gl <- grid.layout(nrow=4, ncol=1,
+                    heights=unit(c(2, 4, 2, 2), "null"))
+  vp0 <- viewport(layout=gl, x=unit(0.5, "npc"),
+                  y=unit(0.5, "npc"))
+  pushViewport(vp0)
+  vp1 <- viewport(layout.pos.row=nrow)
+  pushViewport(vp1)
+  ##grid.rect()
+  vp2 <- viewport(x=unit(x, "npc"),
+                  y=unit(0.5, "npc"),
+                  width=unit(w, "npc"),
+                  just=just)
+  pushViewport(vp2)
+  ##grid.rect(gp=gpar(col="blue"))
+  grid.draw(mygrob)
+  popViewport(4)
+}
+
+ptLayout2 <- function(mygrob, nrow, x, w, just=c("left", "center")){
+  vp <- viewport(x=unit(0.5, "npc"), y=unit(0.5, "npc"),
+                 width=unit(0.95, "npc"), height=unit(0.95, "npc"),
+                 just=rep("center", 2))
+  pushViewport(vp)
+  gl <- grid.layout(nrow=2, ncol=1,
+                    heights=unit(c(1, 1), "null"))
+  vp0 <- viewport(layout=gl, x=unit(0.5, "npc"),
+                  y=unit(0.5, "npc"))
+  pushViewport(vp0)
+  vp1 <- viewport(layout.pos.row=nrow)
+  pushViewport(vp1)
+  ##grid.rect()
+  vp2 <- viewport(x=unit(x, "npc"),
+                  y=unit(0.5, "npc"),
+                  width=unit(w, "npc"),
+                  just=just)
+  pushViewport(vp2)
+  ##grid.rect(gp=gpar(col="blue"))
+  grid.draw(mygrob)
+  popViewport(4)
+}
+
+
+.pt_viewports <- function(roi){
+  gl2 <- grid.layout(nrow=4, ncol=1,
+                     widths=unit(1, "npc"),
+                     heights=unit(c(2, 4, 2, 2), "null"))
+  gl.pt <- grid.layout(nrow=1, ncol=2,
+                       widths=unit(pt.widths, "npc"))
+
 }
