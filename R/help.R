@@ -5,7 +5,7 @@
 #' @docType package
 #' @name svplots
 #' @import methods
-#' @import svclasses
+#' @import trellis
 #' @import GenomicRanges
 #' @import GenomeInfoDb
 #' @import grid
@@ -21,7 +21,9 @@
 #' @importMethodsFrom Rgraphviz renderGraph
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom biovizBase getIdeoGR
-#' @importFrom svcnvs listGenomeFilters
 #' @importMethodsFrom SummarizedExperiment rowRanges assays
 #' @importFrom SummarizedExperiment SummarizedExperiment
+#' @import tibble
+#' @import magrittr
+#' @import dplyr
 NULL

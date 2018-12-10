@@ -1,11 +1,11 @@
 Package: svplots
 Title: Visualization tools for structural variant analyses
-Version: 0.0.13
+Version: 0.0.14
 Authors@R: person("Rob", "Scharpf", email = "rscharpf@jhu.edu", role = c("aut", "cre"))
 Description: Provides tools for plotting structural variant sequencing data.
 Depends:
     R (>= 3.2.0),
-    svclasses
+    trellis
 Imports:
     methods,
     grid,
@@ -21,7 +21,9 @@ Imports:
     GenomicRanges,
     RColorBrewer,
     biovizBase,
-    svcnvs (>= 0.0.23)
+    tibble,
+    magrittr,
+    dplyr
 License: Artistic-2.0
 LazyData: true
 Collate: 
@@ -38,5 +40,4 @@ Collate:
     'preprocess-plots.R'
 RoxygenNote: 6.0.1
 Suggests:
-    svdata,
     testthat

@@ -220,7 +220,105 @@ ggIdeogram <- function(chroms, fusion.dat, g.params){
 ##          panel.background=element_rect(fill="transparent"))
 ## }
 
-.gg_ideogram <- function(coords, fusion.dat, gene1.params, gene2.params){
+#' @export
+ideogramData <- function(chrom, param.list, build="hg19"){
+  gene1.params <- param.list[[1]]
+  gene2.params <- param.list[[2]]
+  ip <- IdiogramParams(chrom)
+  coords <- idiogram_coordinates(ip)
+  colors <- getOption("biovizBase")$cytobandColor
+  gene1 <- gene1.params$gene.name
+  gene2 <- gene2.params$gene.name
+
+  ustains <- unique(coords$gieStain)
+  colors <- colors[ustains]
+  coords$gieStain <- factor(coords$gieStain, levels=ustains)
+  coords$ymin <- -0.5
+  coords$ymax <- 0.5
+
+  taper.coords <- taperIdeogram(coords) %>%
+    as.tibble
+  coords2 <- coords[-c(1, nrow(coords)), ]
+  coords3 <- coords2[coords2$gieStain != "acen", ] %>%
+    as.tibble
+  genes <- c(gene1.params$gene.name,
+             gene2.params$gene.name)
+  tx <- loadTx(build)
+  tx <- tx[tx$gene_name %in% genes]
+  tx <- tx[!duplicated(tx$gene_name)]
+  ##  genes <- strsplit(fusion.dat$fusion, "-")[[1]] %>%
+  ##    as.data.frame %>%
+  ##    mutate(chrom=chromosome(tx))
+  gene.coords <- as.data.frame(tx) %>%
+    mutate(chrom=chromosome(tx),
+           ymin=-0.75,
+           ymax=0.75)
+  genes <- gene.coords$gene_name
+  coords3$chrom <- gene.coords$chrom
+  ##gene.coords$gene <- factor(gene.coords$gene, levels=genes)
+  ##coords3$chrom <- as.character(seqnames(fusion.dat[[1]]))[1]
+  gene.coords$gene.colors <- c(gene1.params$exon.color,
+                               gene2.params$exon.color)
+  list(gene.coords=gene.coords,
+       taper.coords=taper.coords,
+       ideogram.coords=coords3,
+       colors=colors)
+}
+
+#' @export
+ggIdeogram2 <- function(dat.list){
+  coords3 <- dat.list[["ideogram.coords"]]
+  gene.coords <- dat.list[["gene.coords"]]
+  taper.coords <- dat.list[["taper.coords"]]
+  colors <- dat.list[["colors"]]
+  gene.colors <- gene.coords$gene.colors
+  genes <- gene.coords$gene_name
+  ##ggplot(coords3, aes(xmin=xleft, xmax=xright, ymin=ymin, ymax=ymax,
+  ggplot(coords3,
+         aes(xmin=xleft, xmax=xright, ymin=ymin, ymax=ymax,
+             fill=gieStain, color=gieStain)) +
+    geom_polygon(data=subset(taper.coords, id=="p.telomere"),
+                 aes(x, y, group=id),
+                 fill=colors["gneg"],
+                 inherit.aes=FALSE, color="black") +
+    geom_polygon(data=subset(taper.coords,
+                             id %in% c("p.centromere", "q.centromere")),
+                 aes(x, y, group=id),
+                 fill=colors["acen"],
+                 inherit.aes=FALSE, color="black") +
+    geom_polygon(data=subset(taper.coords, id=="q.telomere"),
+                 aes(x, y, group=id),
+                 fill=colors["gneg"],
+                 inherit.aes=FALSE, color="black") +
+    geom_rect(color="black") +
+    geom_rect(data=subset(gene.coords, gene_name==genes[2]),
+              aes(xmin=start, xmax=end,
+                  ymin=ymin, ymax=ymax),
+              color=gene.colors[2],
+              inherit.aes=FALSE, fill=gene.colors[2], alpha=0.3) +
+    geom_rect(data=subset(gene.coords, gene_name==genes[1]),
+              aes(xmin=start, xmax=end,
+                  ymin=ymin, ymax=ymax),
+              color=gene.colors[1],
+              inherit.aes=FALSE,
+              fill=gene.colors[1], alpha=0.3) +
+    scale_fill_manual(values=colors) +
+    scale_color_manual(values=colors) +
+    scale_x_continuous(expand=c(0, 0)) +
+    scale_y_continuous(breaks=0, labels=coords3$chrom[1],
+                       expand=c(0.5, 0)) +
+    theme(legend.position="none",
+          axis.text.x=element_blank(),
+          axis.text.y=element_text(angle=0, size=15), 
+          axis.line=element_blank(),
+          axis.ticks=element_blank(),
+          axis.title=element_blank(),
+          panel.background=element_rect(fill="transparent"))
+}
+
+
+.gg_ideogram <- function(coords, fusion.dat,
+                         gene1.params, gene2.params){
   colors <- getOption("biovizBase")$cytobandColor
   gene1 <- gene1.params$gene.name
   gene2 <- gene2.params$gene.name
@@ -238,7 +336,7 @@ ggIdeogram <- function(chroms, fusion.dat, g.params){
   genes <- strsplit(fusion.dat$fusion, "-")[[1]]
   tx1 <- fusion.dat$exons[[gene1]]
   tx2 <- fusion.dat$exons[[gene2]]
-  chroms <- as.character(c(tx1$seqnames[1], tx2$seqnames[2]))
+  chroms <- as.character(c(tx1$seqnames[1], tx2$seqnames[1]))
   stopifnot(identical(chroms[1], chroms[2]))
   gene.coords <- data.frame(chrom=chroms,
                             start=c(min(tx1$start),
