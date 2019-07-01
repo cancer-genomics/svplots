@@ -55,3 +55,52 @@ plot_amplicons <- function(ag, col_list=qualitativeColors()){
   ## } else plot(graph_object)
   graph_object
 }
+
+ampliconGraph <- function(ag, tx, palette="Dark2", max_size=5, ...){
+  if(length(graph(ag)@nodes) <= 1) return(NULL)
+  B <- plot_amplicons(ag)
+  if(is.null(B)) return(NULL)
+  ## adjacency matrix
+  B1 <- as(B, "graphAM")
+  am <- B1@adjMat
+  net <- network(am, directed=FALSE)
+  chroms <- sapply(strsplit(colnames(am), ":"), "[", 1)
+  L <- length(unique(chroms))
+  if(L >= 9){
+    palette <- "Paired"
+  } else{
+    palette <- "Dark2"
+  }
+  ar <- ampliconRanges(ag)
+  hits <- findOverlaps(ar, tx, maxgap=5000)
+  cancer.con <- split(tx$cancer_connection[subjectHits(hits)],
+                      queryHits(hits))
+  is.driver <- sapply(cancer.con, any)
+  is.driver2 <- rep(FALSE, ncol(am))
+  is.driver2[as.integer(names(is.driver))] <- is.driver
+  net %v% "chrom" <- chroms
+  net %v% "driver" <- is.driver2
+  NE <- graph::numEdges(ag)
+  if(NE > 0){
+    B <- ggnet2(net, color="chrom",
+                palette=palette,
+                shape="driver",
+                size="degree",
+                ##legend.size=5,
+                max_size=max_size,
+                min_size=1,
+                ...)  +
+      guides(size=FALSE, shape=FALSE)
+  } else {
+    B <- ggnet2(net, color="chrom",
+                palette=palette,
+                shape="driver",
+                size=4,
+                ##legend.size=5,
+                max_size=max_size,
+                min_size=1,
+                ...)  +
+      guides(size=FALSE, shape=FALSE)
+  }
+  return(B)
+}
