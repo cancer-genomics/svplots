@@ -33,7 +33,7 @@
               color=params[["background.color"]],
               alpha=0.2, inherit.aes=FALSE) +
     geom_rect(data=exons,
-              aes(xmin=clip.at, 
+              aes(xmin=clip.at,
                   xmax=-xmin,
                   ymin=-Inf, ymax=+Inf),
               fill="gray",
@@ -42,7 +42,7 @@
     geom_rect(size=1) +
     scale_y_continuous(breaks=0, labels="5'", expand=c(0, 0), limits=c(-0.5, 0.5)) +
     scale_x_continuous(expand=c(0,0)) +
-    guides(fill=FALSE, color=FALSE) +
+    guides(fill="none", color="none") +
     geom_vline(xintercept=c(clip.at-20, clip.at + 20), linetype="dashed") +
     scale_color_manual(values=manual.colors) +
     scale_fill_manual(values=manual.colors) +
@@ -98,7 +98,7 @@
               color=params[["background.color"]],
               alpha=0.2, inherit.aes=FALSE) +
     geom_rect(data=exons,
-              aes(xmin=clip.at, 
+              aes(xmin=clip.at,
                   xmax=-xmin,
                   ymin=-Inf, ymax=+Inf),
               fill="gray",
@@ -107,7 +107,7 @@
     geom_rect(size=1) +
     scale_y_continuous(breaks=0, labels="5'", expand=c(0, 0), limits=c(-0.5, 0.5)) +
     scale_x_continuous(expand=c(0,0)) +
-    guides(fill=FALSE, color=FALSE) +
+    guides(fill="none", color="none") +
     geom_vline(xintercept=clip.at, linetype="dashed") +
     scale_color_manual(values=manual.colors) +
     scale_fill_manual(values=manual.colors) +
@@ -150,7 +150,7 @@ ggAxisLabel <- function(data.list, params, label){
     geom_rect(size=1, color="transparent", fill="transparent") +
     geom_text(aes(x=midx, y=0.6), color="transparent", size=3) +
     scale_y_continuous(breaks=0.05, labels=label) +
-    guides(fill=FALSE, color=FALSE) +
+    guides(fill="none", color="none") +
     theme(axis.text.x=element_blank(),
           axis.title=element_blank(),
           axis.text.y=element_text(size=10),
@@ -167,10 +167,10 @@ ggAxisLabel <- function(data.list, params, label){
 ggTxFusion <- function(dat, gene1.params, gene2.params){
   strand <- as.character(dat$exons[["strand"]][1])
   if(strand=="+"){
-    p <- gg_fusion_plus(dat, gene1.params, gene2.params) 
+    p <- gg_fusion_plus(dat, gene1.params, gene2.params)
   }
   if(strand=="-"){
-    p <- gg_fusion_minus(dat, gene1.params, gene2.params) 
+    p <- gg_fusion_minus(dat, gene1.params, gene2.params)
   }
   ##annotate("text", max(exons$end2)+5000, 1, label="3'", size=4) ##+
   ##facet_wrap(~tumor, switch="y")
@@ -212,12 +212,12 @@ gg_fusion_minus <- function(dat, gene1.params, gene2.params){
     geom_segment(data=exons,
                  aes(x=min(start), xend=max(end), y=0, yend=0),
                  color="black") +
-    geom_rect(size=1) + 
+    geom_rect(size=1) +
     scale_y_continuous(expand=c(0, 0), limits=c(-0.5, 0.5), breaks=0, label="5'") +
     scale_x_reverse(expand=c(0, 0), breaks=sequence_jxn, labels=jxn.label) +
     ##geom_text(aes(x=midx, y=1.3), color="black", size=3) +
     ylab("") + xlab("") +
-    guides(fill=FALSE, color=FALSE) +
+    guides(fill="none", color="none") +
     scale_color_manual(values=gene.colors) +
     scale_fill_manual(values=gene.colors) +
     theme(axis.text.x=element_text(size=9),
@@ -265,12 +265,12 @@ gg_fusion_plus <- function(dat, gene1.params, gene2.params){
     geom_segment(data=exons,
                  aes(x=min(start), xend=max(end), y=0, yend=0),
                  color="black") +
-    geom_rect(size=1) + 
+    geom_rect(size=1) +
     scale_y_continuous(limits=c(-0.5, 0.5),
                        expand=c(0, 0), breaks=0, label="5'") +
     scale_x_continuous(breaks=sequence_jxn, labels=jxn.label, expand=c(0,0)) +
     ylab("") + xlab("") +
-    guides(fill=FALSE, color=FALSE) +
+    guides(fill="none", color="none") +
     scale_color_manual(values=gene.colors) +
     scale_fill_manual(values=gene.colors) +
     theme(axis.text.x=element_text(size=9),
@@ -351,7 +351,7 @@ ggRearrangedReads2 <- function(reads.df, g.params, roi, reverse.roi){
       ##plot.margin=unit(c(0.1, 0, 0.01, 0.5), "npc")) +
 	    ##ylab("rearranged\nread pairs") +
       xlab("") +
-	    guides(fill=FALSE) +
+	    guides(fill="none") +
 	    facet_wrap(~transcript, scale="free_x")
   }
   g1 <- ggplot(reads.gene1,
@@ -375,7 +375,7 @@ ggRearrangedReads2 <- function(reads.df, g.params, roi, reverse.roi){
           ## top, right, bottom, left
           ##plot.margin=unit(c(0.1, 0, 0.01, 0), "npc")) +
     ##ylab("rearranged\nread pairs") + xlab("") +
-    guides(fill=FALSE)
+    guides(fill="none")
   if(strand1 == "-") g1 <- g1 + scale_x_reverse(expand=c(0, 0))
   g2 <- ggplot(reads.gene2,
          aes(xmin=start, xmax=end, ymin=pair.id-0.3,
@@ -480,7 +480,7 @@ ggClippedProtein1 <- function(p.dat, params){
     scale_x_continuous(expand=c(0, 1),
                        breaks=p.dat$clip.start[1],
                        labels=p.dat$clip.start[1]) +
-    guides(fill=FALSE, color=FALSE) +
+    guides(fill="none", color="none") +
     geom_vline(xintercept=p.dat$aa.jxn[1], linetype="dashed") +
     scale_color_manual(values=manual.colors) +
     scale_fill_manual(values=manual.colors) +
@@ -491,7 +491,7 @@ ggClippedProtein1 <- function(p.dat, params){
           panel.grid.minor.x=element_line(color="transparent"),
           panel.border=element_rect(color="transparent", fill=NA))
   ## top, right, bottom, left
-  ##plot.margin=unit(c(1, -0.1, 1, 1), "lines")) 
+  ##plot.margin=unit(c(1, -0.1, 1, 1), "lines"))
   ##ggtitle(protein)
 }
 
@@ -534,7 +534,7 @@ ggClippedProtein2 <- function(p.dat, params){
     geom_text(data=p.dat, aes(x=midx, y=0, label=short.desc),
               size=description.size, angle=90, inherit.aes=FALSE)  +
     scale_x_continuous(expand=c(0, 1), breaks=p.dat$clip.end[1], labels=p.dat$clip.end[1]) +
-    guides(fill=FALSE, color=FALSE) +
+    guides(fill="none", color="none") +
     geom_vline(xintercept=p.dat$aa.jxn[1], linetype="dashed") +
     scale_color_manual(values=manual.colors) +
     scale_fill_manual(values=manual.colors) +
@@ -545,7 +545,7 @@ ggClippedProtein2 <- function(p.dat, params){
           panel.grid.minor.x=element_line(color="transparent"),
           panel.border=element_rect(color="transparent", fill=NA))
   ## top, right, bottom, left
-  ##plot.margin=unit(c(1, -0.1, 1, 1), "lines")) 
+  ##plot.margin=unit(c(1, -0.1, 1, 1), "lines"))
   ##ggtitle(protein)
 }
 
@@ -601,7 +601,7 @@ ggProteinFusion <- function(data.list, p1.params, p2.params){
     geom_vline(xintercept=d$aa.jxn[1],
                color="gray20", linetype="dashed") +
     ylab("") + xlab("") +
-    guides(fill=FALSE, color=FALSE) +
+    guides(fill="none", color="none") +
     scale_color_manual(values=domain.colors) +
     scale_fill_manual(values=domain.colors) +
     scale_x_continuous(expand=c(0, 1), breaks=breaks, labels=breaks) +
@@ -611,7 +611,7 @@ ggProteinFusion <- function(data.list, p1.params, p2.params){
           panel.grid.minor.x=element_line(color="transparent"),
           panel.border=element_rect(color="transparent", fill=NA))
   ## top, right, bottom, left
-  ##plot.margin=unit(c(0.5, 1, 0, 1), "mm")) 
+  ##plot.margin=unit(c(0.5, 1, 0, 1), "mm"))
 }
 
 compositeFusionParams <- function(){
@@ -657,7 +657,7 @@ transcriptGrobs <- function(dat){
                             dat[["g.params"]][[2]],
                             dat[["roi"]])
   gg2.clip <- ggplotGrob(g2.clip)
-  
+
   g.fused <- ggTxFusion(dat[["fused.transcripts"]],
                         dat[["g.params"]][[1]],
                         dat[["g.params"]][[2]])

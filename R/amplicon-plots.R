@@ -45,7 +45,7 @@ plot_amplicons <- function(ag, col_list=qualitativeColors()){
   ##nodeAttrs <- list(fillcolor=colors)
   nodeAttrs <- list(fillcolor=color_nodes)
   attrs <- list(node=list(shape="rectangle",
-                          fixedsize=FALSE),
+                          fixedsize="none"),
                 graph=list(rankdir="LR"))
   graph_object <- layoutGraph(g1,
                               attrs=attrs,
@@ -90,7 +90,7 @@ ampliconGraph <- function(ag, tx, palette="Dark2", max_size=5, ...){
                 max_size=max_size,
                 min_size=1,
                 ...)  +
-      guides(size=FALSE, shape=FALSE)
+      guides(size="none", shape="none")
   } else {
     B <- ggnet2(net, color="chrom",
                 palette=palette,
@@ -100,7 +100,7 @@ ampliconGraph <- function(ag, tx, palette="Dark2", max_size=5, ...){
                 max_size=max_size,
                 min_size=1,
                 ...)  +
-      guides(size=FALSE, shape=FALSE)
+      guides(size="none", shape="none")
   }
   return(B)
 }
