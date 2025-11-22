@@ -64,7 +64,7 @@ circosTracks <- function(rear.list, slstyle="NCBI", MINSEP=50e3){
   ##rlist <- readRDS(rfile)
   r <- linkedBins(rlist)
   if(length(r) > 0){
-    seqlevelsStyle(r) <- slstyle
+      seqlevelsStyle(r) <- slstyle
     seqlevelsStyle(r$linked.to) <- slstyle
     r <- keepSeqlevels(r, seqlevels(d))
     seqinfo(r) <- seqinfo(hg)
