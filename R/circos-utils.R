@@ -44,6 +44,18 @@ circosTracks <- function(rear.list, slstyle="NCBI", MINSEP=50e3){
   ##id.rds <- paste0(id, ".rds")
   ##svs <- readRDS(file.path(dirs["1deletions"], id.rds))
   ##svs <- readRDS(file.path("data/segment/1deletions", id.rds))
+  ## Reference chromosome set for all circos tracks: the standard autosomes + X
+  ## in the requested style. Previously the tracks below were harmonized to
+  ## seqlevels(d) (the deletions track), but a StructuralVariant with zero
+  ## deletions can carry no seqinfo, making seqlevels(d) character(0); the
+  ## keepSeqlevels() calls then try to drop EVERY seqlevel from the
+  ## rearrangement / ideogram / copy-number tracks and error with "seqlevels are
+  ## to be dropped but are currently in use". A whole-genome circos always spans
+  ## chr1-22,X, so use that fixed set. For samples whose deletions track did have
+  ## full seqinfo this is identical to the old seqlevels(d) (both equal the
+  ## standard set), so working samples are unaffected.
+  std_chr <- if (identical(slstyle, "NCBI")) c(as.character(1:22), "X")
+             else paste0("chr", c(1:22, "X"))
   svs <- rear.list[["deletions"]]
   d <- granges(variant(svs))
   d$type <- rep("del", length(d))
@@ -66,7 +78,7 @@ circosTracks <- function(rear.list, slstyle="NCBI", MINSEP=50e3){
   if(length(r) > 0){
       seqlevelsStyle(r) <- slstyle
     seqlevelsStyle(r$linked.to) <- slstyle
-    r <- keepSeqlevels(r, seqlevels(d))
+    r <- keepSeqlevels(r, intersect(std_chr, seqlevels(r)), pruning.mode="coarse")
     seqinfo(r) <- seqinfo(hg)
     lt <- r$linked.to
     seqlevels(lt, pruning.mode="coarse") <- seqlevels(r)
@@ -82,8 +94,8 @@ circosTracks <- function(rear.list, slstyle="NCBI", MINSEP=50e3){
   gr.cn <- cnTrack(rear.list[["segments"]], 200) ## number of cn estimates per chrom.
   seqlevelsStyle(gr.cn) <- slstyle
 
-  hg <- keepSeqlevels(hg, seqlevels(d))
-  gr.cn <- keepSeqlevels(gr.cn, seqlevels(d))
+  hg <- keepSeqlevels(hg, intersect(std_chr, seqlevels(hg)), pruning.mode="coarse")
+  gr.cn <- keepSeqlevels(gr.cn, intersect(std_chr, seqlevels(gr.cn)), pruning.mode="coarse")
   seqinfo(gr.cn) <- seqinfo(hg)
   if(length(r) > 0){
     types <- c("intra-chrom", "inter-chrom")
